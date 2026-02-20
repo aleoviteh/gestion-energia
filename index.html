@@ -29,23 +29,23 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-            /* Estilos personalizados para la barra lateral desplegable */
-        #sidebar {
-            transition: transform 0.3s ease-in-out;
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .nav-btn-active {
+            background-color: #2563eb;
+            color: white;
         }
-        
-        @media (max-width: 1024px) {
-            #sidebar.closed {
-                transform: translateX(-100%);
-            }
-        }
-        
-        #sidebar-overlay.active {
-            display: block;
+
+        .tab-active {
+            border-bottom: 2px solid #2563eb;
+            color: #2563eb;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 overflow-hidden">
+<body class="bg-slate-50 text-slate-900">
 
     <!-- PANTALLA DE INICIO DE SESIÓN -->
     <div id="login-screen" class="min-h-screen bg-slate-900 flex items-center justify-center p-4">
@@ -74,67 +74,52 @@
     </div>
 
     <!-- ESTRUCTURA PRINCIPAL DE LA APP -->
-    <!-- Overlay para móviles -->
-    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-30 hidden"></div>
-
-    <!-- Contenedor Principal -->
-    <div id="app-container" class="flex h-screen bg-slate-50 hide relative">
-        
-        <!-- Barra Lateral Desplegable -->
-        <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 w-72 bg-slate-900 text-slate-300 flex flex-col h-full z-40 closed lg:transform-none">
-            <!-- Header Menú -->
-            <div class="p-6 border-b border-slate-800 flex justify-between items-center">
-                <div class="flex items-center gap-3">
-                    <div class="bg-blue-600 p-2 rounded-lg">
-                        <i data-lucide="zap" class="w-5 h-5 text-white fill-white"></i>
-                    </div>
-                    <span class="font-bold text-white tracking-widest text-sm">ENERGÍA</span>
-                </div>
-                <button onclick="toggleSidebar()" class="lg:hidden p-1 hover:bg-slate-800 rounded-lg">
-                    <i data-lucide="x" class="w-6 h-6"></i>
-                </button>
-            </div>
-
-            <!-- Selector de Módulos -->
-            <div class="p-4 border-b border-slate-800">
-                <button onclick="toggleModulesMenu()" class="w-full flex items-center justify-between bg-slate-800/50 hover:bg-slate-800 px-4 py-3 rounded-xl transition-all border border-slate-700 text-white group">
+    <div id="app-container" class="flex h-screen bg-slate-50 hide">
+        <!-- Barra Lateral -->
+        <aside class="w-64 bg-slate-800 text-slate-300 flex flex-col h-full shrink-0 shadow-2xl z-20">
+            <div class="p-4 border-b border-slate-700">
+                <button onclick="toggleModulesMenu()" class="w-full flex items-center justify-between bg-slate-700/50 hover:bg-slate-700 px-4 py-3 rounded-xl transition-all border border-slate-600 text-white group">
                     <div class="flex items-center gap-3">
                         <i data-lucide="layout-grid" class="text-blue-400 w-5 h-5"></i>
-                        <span class="font-bold tracking-wide text-xs">MÓDULOS</span>
+                        <span class="font-bold tracking-wide">MÓDULOS</span>
                     </div>
-                    <i data-lucide="chevron-down" id="modules-chevron" class="w-4 h-4 transition-transform"></i>
+                    <i data-lucide="chevron-down" id="modules-chevron" class="w-4 h-4 transition-transform group-hover:text-blue-400"></i>
                 </button>
+                
                 <div id="modules-dropdown" class="dropdown-menu mt-2 space-y-1">
-                    <button onclick="selectModule('plantas')" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-800 rounded-lg flex items-center gap-2 transition-colors">
-                        <i data-lucide="factory" size="14"></i> PLANTAS ELECT.
+                    <button onclick="selectModule('plantas')" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-700 rounded-lg flex items-center gap-2 transition-colors">
+                        <i data-lucide="factory" size="14"></i> PLANTAS
                     </button>
-                    <button onclick="selectModule('flota')" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-800 rounded-lg flex items-center gap-2 transition-colors">
-                        <i data-lucide="truck" size="14"></i> FLOTA VEHICULAR
+                    <button onclick="selectModule('inventario')" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-700 rounded-lg flex items-center gap-2 transition-colors">
+                        <i data-lucide="box" size="14"></i> INVENTARIO
+                    </button>
+                    <button id="menu-btn-usuarios" onclick="selectModule('usuarios_mod')" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-700 rounded-lg flex items-center gap-2 transition-colors hide">
+                        <i data-lucide="user-cog" size="14"></i> USUARIOS
                     </button>
                 </div>
             </div>
 
-            <!-- Navegación Dinámica -->
             <nav id="sidebar-nav" class="flex-1 p-4 space-y-2 overflow-y-auto">
-                <!-- Se llena mediante JS -->
+                <div class="flex flex-col items-center justify-center h-full opacity-20 text-center px-4">
+                    <i data-lucide="arrow-up-circle" class="mb-2"></i>
+                    <p class="text-[10px] font-bold uppercase tracking-widest leading-tight">Seleccione un módulo arriba</p>
+                </div>
             </nav>
 
-            <!-- Perfil de Usuario -->
-            <div class="p-6 border-t border-slate-800 bg-slate-900/50">
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white border-2 border-slate-700" id="user-avatar">
-                        U
+            <div class="p-4 border-t border-slate-700 bg-slate-800/50">
+                <div class="flex items-center gap-3 mb-4 px-2">
+                    <div id="user-avatar" class="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-sm font-bold text-white shadow-md border-2 border-slate-700">U</div>
+                    <div class="overflow-hidden">
+                        <p id="user-display-name" class="text-sm font-medium text-white truncate">Usuario</p>
+                        <p id="user-display-role" class="text-xs text-slate-400 uppercase font-bold tracking-tighter">Rol</p>
                     </div>
-                    <div class="flex-1 overflow-hidden">
-                        <p class="text-sm font-bold text-white truncate" id="display-user-name">Usuario</p>
-                        <p class="text-[10px] text-slate-500 uppercase tracking-tighter">Administrador</p>
-                    </div>
-                    <button onclick="location.reload()" class="text-slate-500 hover:text-red-400 transition-colors">
-                        <i data-lucide="log-out" class="w-4 h-4"></i>
-                    </button>
                 </div>
+                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:bg-red-900/20 rounded-lg transition-colors text-sm font-medium">
+                    <i data-lucide="log-out" size="18"></i> Cerrar Sesión
+                </button>
             </div>
         </aside>
+
         <!-- Área de Contenido -->
         <main class="flex-1 overflow-y-auto p-8 relative flex flex-col">
             
@@ -1012,5 +997,3 @@
     </script>
 </body>
 </html>
-
-
