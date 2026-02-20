@@ -29,23 +29,23 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .nav-btn-active {
-            background-color: #2563eb;
-            color: white;
+            /* Estilos personalizados para la barra lateral desplegable */
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
         }
-
-        .tab-active {
-            border-bottom: 2px solid #2563eb;
-            color: #2563eb;
+        
+        @media (max-width: 1024px) {
+            #sidebar.closed {
+                transform: translateX(-100%);
+            }
+        }
+        
+        #sidebar-overlay.active {
+            display: block;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-slate-50 text-slate-900 overflow-hidden">
 
     <!-- PANTALLA DE INICIO DE SESIÓN -->
     <div id="login-screen" class="min-h-screen bg-slate-900 flex items-center justify-center p-4">
@@ -997,3 +997,4 @@
     </script>
 </body>
 </html>
+
