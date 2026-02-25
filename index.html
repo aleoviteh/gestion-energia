@@ -315,7 +315,7 @@
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
-        const firebaseConfig = JSON.parse(window.__firebase_config || {
+        const firebaseConfig = {
     apiKey: "AIzaSyBkN6mE0YqWeAToslbgOAta80gjYi_C4Xk",
     authDomain: "gerencia-de-energia.firebaseapp.com",
     projectId: "gerencia-de-energia",
@@ -613,4 +613,5 @@
     </script>
 </body>
 </html>
+
 
