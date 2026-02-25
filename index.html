@@ -3,1013 +3,519 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GERENCIA DE ENERGIA</title>
+    <title>Gerencia - Sistema de Gestión</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>            
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .modal-overlay { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); }
-        .hide { display: none !important; }
-        .dropdown-menu {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-        .dropdown-active {
-            max-height: 400px;
-        }
-        
-        .welcome-fade {
-            animation: fadeIn 0.8s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .nav-btn-active {
-            background-color: #2563eb;
-            color: white;
-        }
-
-        .tab-active {
-            border-bottom: 2px solid #2563eb;
-            color: #2563eb;
-        }
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/lucide.min.js"></script>
+    <style>
+        .sidebar-transition { transition: all 0.3s ease; }
+        .hidden-module { display: none; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .bg-connection-ok { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .bg-connection-fail { background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900">
+<body class="bg-gray-50 font-sans text-gray-900">
 
-    <!-- PANTALLA DE INICIO DE SESIÓN -->
-    <div id="login-screen" class="min-h-screen bg-slate-900 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-            <div class="flex flex-col items-center mb-8">
-                <div class="bg-blue-600 p-4 rounded-full mb-4 shadow-lg shadow-blue-500/30">
-                    <i data-lucide="shield-check" class="text-white w-8 h-8"></i>
+    <!-- Login Overlay -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
+            <h1 class="text-3xl font-bold text-center mb-6 text-indigo-600">GERENCIA DE ENERGIA</h1>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium">Usuario</label>
+                    <input type="text" id="login-user" class="w-full p-2 border rounded mt-1 focus:ring-2 focus:ring-indigo-400 outline-none">
                 </div>
-                <h1 class="text-2xl font-bold text-slate-800 text-center uppercase tracking-tight">Gerencia de Energía</h1>
-                <p class="text-slate-500 text-sm">Ingrese sus datos</p>
+                <div>
+                    <label class="block text-sm font-medium">Contraseña</label>
+                    <input type="password" id="login-pass" class="w-full p-2 border rounded mt-1 focus:ring-2 focus:ring-indigo-400 outline-none">
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">Ingresar</button>
             </div>
-            <form id="login-form" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Usuario</label>
-                    <input id="login-user" type="text" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all" required>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-                    <input id="login-pass" type="password" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-alltext-sm" placeholder="••••••••">
-                </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-all shadow-lg active:scale-[0.98]">
-                    Iniciar Sesión
-                </button>
-            </form>
+            <p id="login-error" class="text-red-500 text-sm mt-4 hidden text-center">Credenciales incorrectas.</p>
         </div>
     </div>
 
-    <!-- ESTRUCTURA PRINCIPAL DE LA APP -->
-    <div id="app-container" class="flex h-screen bg-slate-50 hide">
-        <!-- Barra Lateral -->
-        <aside class="w-64 bg-slate-800 text-slate-300 flex flex-col h-full shrink-0 shadow-2xl z-20">
-            <div class="p-4 border-b border-slate-700">
-                <button onclick="toggleModulesMenu()" class="w-full flex items-center justify-between bg-slate-700/50 hover:bg-slate-700 px-4 py-3 rounded-xl transition-all border border-slate-600 text-white group">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="layout-grid" class="text-blue-400 w-5 h-5"></i>
-                        <span class="font-bold tracking-wide">MÓDULOS</span>
-                    </div>
-                    <i data-lucide="chevron-down" id="modules-chevron" class="w-4 h-4 transition-transform group-hover:text-blue-400"></i>
-                </button>
-                
-                <div id="modules-dropdown" class="dropdown-menu mt-2 space-y-1">
-                    <button onclick="selectModule('plantas')" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-700 rounded-lg flex items-center gap-2 transition-colors">
-                        <i data-lucide="factory" size="14"></i> PLANTAS
-                    </button>
-                    <button onclick="selectModule('inventario')" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-700 rounded-lg flex items-center gap-2 transition-colors">
-                        <i data-lucide="box" size="14"></i> INVENTARIO
-                    </button>
-                    <button id="menu-btn-usuarios" onclick="selectModule('usuarios_mod')" class="w-full text-left px-4 py-2 text-sm hover:bg-slate-700 rounded-lg flex items-center gap-2 transition-colors hide">
-                        <i data-lucide="user-cog" size="14"></i> USUARIOS
-                    </button>
-                </div>
+    <!-- Main Layout (Hidden until Login) -->
+    <div id="main-app" class="hidden flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside id="sidebar" class="bg-indigo-900 text-white w-64 flex-shrink-0 sidebar-transition">
+            <div class="p-6 flex items-center justify-between">
+                <span class="text-xl font-bold tracking-wider">GERENCIA DE ENERGIA</span>
+                <button onclick="toggleSidebar()" class="lg:hidden"><i data-lucide="menu"></i></button>
             </div>
-
-            <nav id="sidebar-nav" class="flex-1 p-4 space-y-2 overflow-y-auto">
-                <div class="flex flex-col items-center justify-center h-full opacity-20 text-center px-4">
-                    <i data-lucide="arrow-up-circle" class="mb-2"></i>
-                    <p class="text-[10px] font-bold uppercase tracking-widest leading-tight">Seleccione un módulo arriba</p>
+            
+            <nav class="mt-6 px-4 space-y-2">
+                <button onclick="showModule('inventario')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-800 transition">
+                    <i data-lucide="package" class="mr-3"></i> Inventario
+                </button>
+                <button onclick="showModule('plantas')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-800 transition">
+                    <i data-lucide="factory" class="mr-3"></i> Plantas
+                </button>
+                <button id="nav-usuarios" onclick="showModule('usuarios')" class="w-full hidden flex items-center p-3 rounded-lg hover:bg-indigo-800 transition">
+                    <i data-lucide="users" class="mr-3"></i> Usuarios
+                </button>
+                <div class="pt-10">
+                    <button onclick="handleLogout()" class="w-full flex items-center p-3 rounded-lg text-red-300 hover:bg-red-900/30 transition">
+                        <i data-lucide="log-out" class="mr-3"></i> Cerrar Sesión
+                    </button>
                 </div>
             </nav>
-
-            <div class="p-4 border-t border-slate-700 bg-slate-800/50">
-                <div class="flex items-center gap-3 mb-4 px-2">
-                    <div id="user-avatar" class="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-sm font-bold text-white shadow-md border-2 border-slate-700">U</div>
-                    <div class="overflow-hidden">
-                        <p id="user-display-name" class="text-sm font-medium text-white truncate">Usuario</p>
-                        <p id="user-display-role" class="text-xs text-slate-400 uppercase font-bold tracking-tighter">Rol</p>
-                    </div>
-                </div>
-                <button onclick="logout()" class="w-full flex items-center gap-3 px-4 py-2 text-red-400 hover:bg-red-900/20 rounded-lg transition-colors text-sm font-medium">
-                    <i data-lucide="log-out" size="18"></i> Cerrar Sesión
-                </button>
-            </div>
         </aside>
 
-        <!-- Área de Contenido -->
-        <main class="flex-1 overflow-y-auto p-8 relative flex flex-col">
-            
-            <header id="main-view-header" class="flex justify-between items-end mb-8 hide">
-                <div>
-                    <h2 id="view-title" class="text-3xl font-bold text-slate-800 uppercase tracking-tight">Cargando...</h2>
-                    <p id="view-subtitle" class="text-slate-500">Gestión de recursos operativos.</p>
+        <!-- Content Area -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- Header -->
+            <header class="bg-white border-b h-16 flex items-center justify-between px-8 shadow-sm">
+                <div class="flex items-center space-x-4">
+                    <h2 id="module-title" class="text-xl font-semibold text-gray-700 uppercase tracking-tight">Inventario</h2>
+                    <span id="connection-status" class="status-dot bg-connection-fail" title="Estado de Firebase"></span>
                 </div>
-                
-                <div id="dashboard-filters" class="flex gap-4 items-end hide">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Mes de Consulta</label>
-                        <input type="month" id="filter-month" class="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Seleccionar Nodo</label>
-                        <select id="filter-nodo" class="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm min-w-[180px]"></select>
-                    </div>
-                </div>
-
-                <div id="inventory-search-box" class="flex gap-4 items-end hide">
-                    <div class="relative">
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-wider">Buscar Artículo</label>
-                        <div class="relative">
-                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
-                            <input type="text" id="search-inv" oninput="renderInventoryTable()" placeholder="Código o Nombre..." class="bg-white border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none shadow-sm min-w-[250px]">
-                        </div>
-                    </div>
+                <div class="flex items-center space-x-4 text-sm">
+                    <span id="user-display" class="font-medium bg-gray-100 px-3 py-1 rounded-full"></span>
                 </div>
             </header>
 
-            <!-- VISTA DE BIENVENIDA -->
-            <section id="view-welcome" class="flex-1 flex flex-col items-center justify-center text-center welcome-fade">
-                <div class="bg-blue-600 p-6 rounded-3xl shadow-2xl shadow-blue-200 mb-8">
-                    <i data-lucide="database" class="w-12 h-12 text-white"></i>
-                </div>
-                <h1 class="text-4xl font-extrabold text-slate-800 mb-4 tracking-tight leading-tight">
-                    Bienvenido a la base de datos de <br>
-                    <span class="text-blue-600 uppercase tracking-tighter">Gerencia de Energía</span>
-                </h1>
-                <p class="text-slate-500 text-lg max-w-md mx-auto">
-                    Utilice el menú lateral de módulos para comenzar a gestionar la infraestructura y suministros de la red.
-                </p>
-                <div class="mt-10 flex gap-4">
-                    <div class="px-4 py-2 bg-white border border-slate-200 text-slate-400 rounded-full text-xs font-bold uppercase tracking-widest shadow-sm">v1.1 <div>
-                </div>
-            </section>
+            <!-- Modules Container -->
+            <div id="content" class="flex-1 overflow-y-auto p-8">
+                
+                <!-- INVENTARIO MODULE -->
+                <section id="mod-inventario" class="space-y-8">
+                    <div class="flex space-x-4 mb-6 border-b pb-2">
+                        <button onclick="showSubmodule('inv-list')" class="px-4 py-2 font-medium text-indigo-600 border-b-2 border-indigo-600">Visualizar</button>
+                        <button id="btn-inv-add" onclick="showSubmodule('inv-add')" class="px-4 py-2 font-medium text-gray-500 hover:text-indigo-600">Ingresar</button>
+                        <button id="btn-inv-ret" onclick="showSubmodule('inv-ret')" class="px-4 py-2 font-medium text-gray-500 hover:text-indigo-600">Retirar</button>
+                        <button onclick="showSubmodule('inv-hist')" class="px-4 py-2 font-medium text-gray-500 hover:text-indigo-600">Historial</button>
+                    </div>
 
-            <!-- VISTAS DE PLANTA-->
-            <section id="view-dashboard" class="space-y-6 hide">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="p-3 bg-blue-50 text-blue-600 rounded-xl"><i data-lucide="fuel"></i></div>
-                            <h3 class="font-semibold text-slate-700 text-sm">Capacidad / Reserva</h3>
-                        </div>
-                        <p id="stat-reserva" class="text-2xl font-bold text-slate-900">0L / 0L</p>
-                        <div class="mt-2 w-full bg-slate-100 rounded-full h-1.5">
-                            <div id="stat-progress-fuel" class="bg-blue-500 h-1.5 rounded-full" style="width: 0%"></div>
-                        </div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="p-3 bg-green-50 text-green-600 rounded-xl"><i data-lucide="clock"></i></div>
-                            <h3 class="font-semibold text-slate-700 text-sm">Horas Encendido</h3>
-                        </div>
-                        <p id="stat-horas" class="text-2xl font-bold text-slate-900">0h</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="flex items-center gap-4 mb-4">
-                            <div class="p-3 bg-purple-50 text-purple-600 rounded-xl"><i data-lucide="file-text"></i></div>
-                            <h3 class="font-semibold text-slate-700 text-sm">Surtido Mensual</h3>
-                        </div>
-                        <p id="stat-surtido" class="text-2xl font-bold text-slate-900">0 L</p>
-                    </div>
-                </div>
-
-                <!-- NUEVA SECCIÓN: HISTORIAL DE REGISTROS (Reemplaza Estado General) -->
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                        <h3 class="font-bold text-slate-800 uppercase tracking-tighter">Historial de Operaciones (Nodo Seleccionado)</h3>
-                        <div id="history-filter-info" class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Filtrado por Mes y Nodo</div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold">
+                    <div id="inv-list" class="submodule">
+                        <table class="w-full bg-white rounded-lg overflow-hidden shadow">
+                            <thead class="bg-gray-100 text-left">
                                 <tr>
-                                    <th class="px-6 py-4">Fecha / Hora</th>
-                                    <th class="px-6 py-4">Tipo Evento</th>
-                                    <th class="px-6 py-4">Cantidad</th>
-                                    <th class="px-6 py-4">Usuario</th>
-                                    <th class="px-6 py-4">Referencia</th>
+                                    <th class="p-4">Código</th>
+                                    <th class="p-4">Nombre</th>
+                                    <th class="p-4">Marca</th>
+                                    <th class="p-4">Tipo</th>
+                                    <th class="p-4">Cantidad</th>
                                 </tr>
                             </thead>
-                            <tbody id="plant-history-body" class="divide-y divide-slate-100 text-sm">
-                                <!-- Se llena dinámicamente -->
-                            </tbody>
-                        </table>
-                        <div id="plant-history-empty" class="p-12 text-center text-slate-400 hide">
-                            <i data-lucide="clipboard-list" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
-                            <p>No hay registros para los criterios seleccionados.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section id="view-ingreso" class="max-w-5xl mx-auto space-y-8 hide">
-                <div class="flex gap-4 border-b border-slate-200">
-                    <button onclick="switchIngresoTab('manual')" id="tab-manual" class="px-6 py-3 font-bold text-sm tracking-widest uppercase transition-all tab-active">Ingreso Manual</button>
-                    <button onclick="switchIngresoTab('csv')" id="tab-csv" class="px-6 py-3 font-bold text-sm tracking-widest uppercase text-slate-400 transition-all">Carga CSV</button>
-                </div>
-
-                <!-- FORMULARIO MANUAL -->
-                <div id="ingreso-manual" class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="flex items-center gap-3 mb-6">
-                            <i data-lucide="zap" class="text-yellow-500"></i>
-                            <h3 class="text-lg font-bold text-slate-800">Registrar Encendido</h3>
-                        </div>
-                        <form id="form-manual-encendido" class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Seleccionar Nodo</label>
-                                <select id="manual-node-zap" class="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-yellow-500" required></select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Horas de Operación</label>
-                                <input type="number" id="manual-hours" step="0.01" min="0.1" placeholder="Ej: 2.5" class="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-yellow-500" required>
-                            </div>
-                            <button type="submit" class="w-full bg-yellow-500 text-white font-bold py-3 rounded-lg hover:bg-yellow-600 transition-all shadow-md">
-                                Guardar Encendido
-                            </button>
-                        </form>
-                    </div>
-
-                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="flex items-center gap-3 mb-6">
-                            <i data-lucide="droplet" class="text-blue-500"></i>
-                            <h3 class="text-lg font-bold text-slate-800">Registrar Surtido</h3>
-                        </div>
-                        <form id="form-manual-surtido" class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Seleccionar Nodo</label>
-                                <select id="manual-node-fuel" class="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required></select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Litros Surtidos</label>
-                                <input type="number" id="manual-liters" step="1" min="1" placeholder="Ej: 50" class="w-full px-4 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500" required>
-                            </div>
-                            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all shadow-md">
-                                Guardar Surtido
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- CARGA CSV -->
-                <div id="ingreso-csv" class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hide">
-                    <div class="flex items-center gap-3 mb-6">
-                        <i data-lucide="upload" class="text-blue-600"></i>
-                        <h3 class="text-xl font-bold text-slate-800">Carga Masiva (CSV)</h3>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="p-6 border-2 border-dashed border-slate-200 rounded-xl hover:border-blue-400 transition-colors text-center group">
-                            <i data-lucide="zap" class="w-10 h-10 text-slate-300 group-hover:text-blue-500 mx-auto mb-3 transition-colors"></i>
-                            <h4 class="font-bold text-slate-700 mb-2">Historial Encendido</h4>
-                            <label class="cursor-pointer bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-bold block hover:bg-blue-600 hover:text-white mt-4 transition-all">
-                                Cargar CSV
-                                <input type="file" id="upload-encendido" class="hidden" accept=".csv">
-                            </label>
-                        </div>
-                        <div class="p-6 border-2 border-dashed border-slate-200 rounded-xl hover:border-blue-400 transition-colors text-center group">
-                            <i data-lucide="droplet" class="w-10 h-10 text-slate-300 group-hover:text-blue-500 mx-auto mb-3 transition-colors"></i>
-                            <h4 class="font-bold text-slate-700 mb-2">Historial Surtido</h4>
-                            <label class="cursor-pointer bg-blue-50 text-blue-600 px-4 py-2 rounded-lg text-sm font-bold block hover:bg-blue-600 hover:text-white mt-4 transition-all">
-                                Cargar CSV
-                                <input type="file" id="upload-surtido" class="hidden" accept=".csv">
-                            </label>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- VISTAS DE INVENTARIO -->
-            <section id="view-inv-consultar" class="space-y-6 hide">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                        <h3 class="font-bold text-slate-800">Artículos en Existencia</h3>
-                        <span id="inv-count" class="text-xs font-bold px-3 py-1 bg-blue-100 text-blue-700 rounded-full">0 items</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold">
-                                <tr>
-                                    <th class="px-6 py-4">Código</th>
-                                    <th class="px-6 py-4">Nombre</th>
-                                    <th class="px-6 py-4">Marca</th>
-                                    <th class="px-6 py-4">Tipo</th>
-                                    <th class="px-6 py-4">Depto.</th>
-                                    <th class="px-6 py-4 text-center">Cant.</th>
-                                    <th class="px-6 py-4 text-right">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="inv-table-body" class="divide-y divide-slate-100 text-sm"></tbody>
+                            <tbody id="inv-table-body"></tbody>
                         </table>
                     </div>
-                </div>
-            </section>
 
-            <section id="view-inv-ingresar" class="max-w-2xl mx-auto hide">
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex items-center gap-3 mb-6">
-                        <i data-lucide="package-plus" class="text-blue-600"></i>
-                        <h3 class="text-xl font-bold text-slate-800">Registrar Nuevo Artículo</h3>
-                    </div>
-                    <form id="inv-form" class="space-y-4">
+                    <div id="inv-add" class="submodule hidden space-y-4 max-w-lg bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-bold">Ingresar Artículo</h3>
                         <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Código</label>
-                                <input id="inv-cod" type="text" placeholder="REF-001" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
-                                <input id="inv-nom" type="text" placeholder="Nombre del artículo" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Marca</label>
-                                <input id="inv-mar" type="text" placeholder="Ej: General Electric" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
-                                <input id="inv-tip" type="text" placeholder="Herramienta, Insumo..." class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Cantidad Inicial</label>
-                                <input id="inv-can" type="number" min="0" value="1" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-slate-700 mb-1">Departamento</label>
-                                <select id="inv-dep" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                                    <option value="" disabled selected>Seleccione...</option>
-                                    <option value="Energia">Energía</option>
-                                    <option value="Redes">Redes</option>
-                                    <option value="Ferreteria">Ferretería</option>
-                                    <option value="Papeleria">Papelería</option>
-                                    <option value="Plantas">Plantas</option>
-                                    <option value="Cables">Cables</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="pt-4">
-                            <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 shadow-lg transition-all flex items-center justify-center gap-2">
-                                <i data-lucide="save" size="18"></i> Guardar en Inventario
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </section>
-
-            <section id="view-inv-retirar" class="max-w-2xl mx-auto hide">
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                    <div class="flex items-center gap-3 mb-6">
-                        <i data-lucide="package-minus" class="text-orange-600"></i>
-                        <h3 class="text-xl font-bold text-slate-800">Retirar Stock de Inventario</h3>
-                    </div>
-                    <form id="retire-form" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Seleccionar Artículo</label>
-                            <select id="retire-item-id" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" required onchange="updateMaxRetire()">
-                                <option value="" disabled selected>Cargando artículos...</option>
+                            <input type="text" id="inv-code" placeholder="Código" class="p-2 border rounded">
+                            <input type="text" id="inv-name" placeholder="Nombre" class="p-2 border rounded">
+                            <input type="text" id="inv-brand" placeholder="Marca" class="p-2 border rounded">
+                            <input type="text" id="inv-type" placeholder="Tipo" class="p-2 border rounded">
+                            <input type="number" id="inv-qty" placeholder="Cantidad" class="p-2 border rounded col-span-2">
+                            <select id="inv-dept" class="p-2 border rounded col-span-2">
+                                <option value="Cables">Cables</option>
+                                <option value="Ferreteria">Ferreteria</option>
+                                <option value="Energia">Energia</option>
+                                <option value="Redes">Redes</option>
+                                <option value="Plantas">Plantas</option>
                             </select>
+                            <button onclick="saveItem()" class="col-span-2 bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700">Guardar</button>
                         </div>
-                        <div class="bg-orange-50 p-4 rounded-xl border border-orange-100 flex items-center justify-between">
-                            <span class="text-orange-800 text-sm font-medium">Stock Actual:</span>
-                            <span id="retire-current-stock" class="text-orange-900 font-bold text-lg">0</span>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Cantidad a Retirar</label>
-                            <input id="retire-qty" type="number" min="1" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-slate-700 mb-1">Motivo / Destinatario</label>
-                            <input id="retire-reason" type="text" placeholder="Ej: Mantenimiento Nodo X" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none" required>
-                        </div>
-                        <div class="pt-4">
-                            <button type="submit" class="w-full bg-orange-600 text-white font-bold py-3 rounded-lg hover:bg-orange-700 shadow-lg transition-all flex items-center justify-center gap-2">
-                                <i data-lucide="log-out" size="18"></i> Confirmar Retirada
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </section>
-
-            <section id="view-inv-historial" class="space-y-6 hide">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                        <h3 class="font-bold text-slate-800">Historial de Movimientos</h3>
-                        <button onclick="clearInvHistory()" class="text-xs font-bold text-red-500 hover:text-red-700 transition-colors uppercase tracking-widest">Limpiar Historial</button>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-bold">
+
+                    <div id="inv-ret" class="submodule hidden space-y-4 max-w-lg bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-bold">Retirar Artículo</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <input type="text" id="ret-code" placeholder="Código" class="p-2 border rounded col-span-2">
+                            <input type="number" id="ret-qty" placeholder="Cantidad a retirar" class="p-2 border rounded col-span-2">
+                            <input type="text" id="ret-dest" placeholder="Destino" class="p-2 border rounded col-span-2">
+                            <input type="text" id="ret-auth" placeholder="Quién autoriza" class="p-2 border rounded col-span-2">
+                            <button onclick="withdrawItem()" class="col-span-2 bg-orange-600 text-white p-2 rounded hover:bg-orange-700">Procesar Retiro</button>
+                        </div>
+                    </div>
+
+                    <div id="inv-hist" class="submodule hidden">
+                        <table class="w-full bg-white rounded-lg overflow-hidden shadow">
+                            <thead class="bg-gray-100 text-left text-xs uppercase text-gray-600">
                                 <tr>
-                                    <th class="px-6 py-4">Fecha / Hora</th>
-                                    <th class="px-6 py-4">Acción</th>
-                                    <th class="px-6 py-4">Código</th>
-                                    <th class="px-6 py-4">Artículo</th>
-                                    <th class="px-6 py-4">Cant.</th>
-                                    <th class="px-6 py-4">Motivo / Detalle</th>
-                                    <th class="px-6 py-4">Usuario</th>
+                                    <th class="p-4">Fecha</th>
+                                    <th class="p-4">Acción</th>
+                                    <th class="p-4">Código</th>
+                                    <th class="p-4">Cant.</th>
+                                    <th class="p-4">Extra</th>
                                 </tr>
                             </thead>
-                            <tbody id="inv-history-body" class="divide-y divide-slate-100 text-sm"></tbody>
+                            <tbody id="inv-hist-body"></tbody>
                         </table>
-                        <div id="history-empty" class="p-12 text-center text-slate-400 hide">
-                            <i data-lucide="history" class="w-12 h-12 mx-auto mb-4 opacity-20"></i>
-                            <p>No se han registrado movimientos todavía.</p>
+                    </div>
+                </section>
+
+                <!-- PLANTAS MODULE -->
+                <section id="mod-plantas" class="hidden space-y-8">
+                    <div class="flex space-x-4 mb-6 border-b pb-2">
+                        <button onclick="showSubmodule('pl-list')" class="px-4 py-2 font-medium text-indigo-600 border-b-2 border-indigo-600">Visualizar</button>
+                        <button id="btn-pl-add" onclick="showSubmodule('pl-add')" class="px-4 py-2 font-medium text-gray-500 hover:text-indigo-600 hidden">Nueva Planta</button>
+                        <button id="btn-pl-reg" onclick="showSubmodule('pl-reg')" class="px-4 py-2 font-medium text-gray-500 hover:text-indigo-600">Registrar Uso</button>
+                        <button onclick="showSubmodule('pl-hist')" class="px-4 py-2 font-medium text-gray-500 hover:text-indigo-600">Historial</button>
+                    </div>
+
+                    <div id="pl-list" class="submodule space-y-4">
+                        <div class="bg-white p-4 rounded shadow flex items-center space-x-4">
+                            <label class="text-sm">Desde:</label>
+                            <input type="date" id="filter-from" class="p-1 border rounded text-sm">
+                            <label class="text-sm">Hasta:</label>
+                            <input type="date" id="filter-to" class="p-1 border rounded text-sm">
+                            <button onclick="renderPlantsList()" class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded text-sm hover:bg-indigo-200">Filtrar</button>
+                        </div>
+                        <table class="w-full bg-white rounded-lg overflow-hidden shadow">
+                            <thead class="bg-gray-100 text-left">
+                                <tr>
+                                    <th class="p-4">Nombre Planta</th>
+                                    <th class="p-4">Gasoil Surtido (L)</th>
+                                    <th class="p-4">Horas Encendido</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pl-table-body"></tbody>
+                        </table>
+                    </div>
+
+                    <div id="pl-add" class="submodule hidden space-y-4 max-w-lg bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-bold">Agregar Nueva Planta</h3>
+                        <input type="text" id="pl-name-new" placeholder="Nombre de la planta" class="w-full p-2 border rounded">
+                        <button onclick="createNewPlant()" class="w-full bg-indigo-600 text-white p-2 rounded">Crear</button>
+                    </div>
+
+                    <div id="pl-reg" class="submodule hidden space-y-4 max-w-lg bg-white p-6 rounded-lg shadow">
+                        <h3 class="text-lg font-bold">Ingreso Manual de Datos</h3>
+                        <select id="pl-select-reg" class="w-full p-2 border rounded"></select>
+                        <input type="number" id="pl-gas" placeholder="Gasoil Surtido (L)" class="w-full p-2 border rounded">
+                        <input type="number" id="pl-hrs" placeholder="Horas de Encendido" class="w-full p-2 border rounded">
+                        <button onclick="savePlantLog()" class="w-full bg-indigo-600 text-white p-2 rounded">Registrar</button>
+                    </div>
+
+                    <div id="pl-hist" class="submodule hidden">
+                        <table class="w-full bg-white rounded-lg overflow-hidden shadow">
+                            <thead class="bg-gray-100 text-left">
+                                <tr>
+                                    <th class="p-4">Fecha</th>
+                                    <th class="p-4">Planta</th>
+                                    <th class="p-4">Gasoil</th>
+                                    <th class="p-4">Horas</th>
+                                    <th class="p-4">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pl-hist-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- USUARIOS MODULE -->
+                <section id="mod-usuarios" class="hidden space-y-8">
+                    <div class="max-w-xl bg-white p-6 rounded-lg shadow space-y-4">
+                        <h3 class="text-xl font-bold border-b pb-2">Crear Nuevo Usuario</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <input type="text" id="user-fullname" placeholder="Nombre Completo" class="p-2 border rounded col-span-2">
+                            <input type="text" id="user-name" placeholder="Nombre de Usuario" class="p-2 border rounded">
+                            <input type="password" id="user-pass" placeholder="Contraseña" class="p-2 border rounded">
+                            <select id="user-level" class="p-2 border rounded col-span-2">
+                                <option value="OBSERVADOR">OBSERVADOR</option>
+                                <option value="MONITOREO">MONITOREO</option>
+                                <option value="ADMINISTRADOR">ADMINISTRADOR</option>
+                            </select>
+                            <button onclick="createUser()" class="col-span-2 bg-green-600 text-white p-2 rounded hover:bg-green-700">Crear Usuario</button>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            <!-- VISTA DE USUARIOS -->
-            <section id="view-usuarios" class="space-y-6 hide">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex justify-between items-center">
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-800">Accesos del Sistema</h3>
-                        <p class="text-sm text-slate-500">Administración de credenciales por nivel.</p>
+                    <div class="bg-white rounded-lg shadow overflow-hidden">
+                        <h3 class="p-4 font-bold bg-gray-50 border-b">Usuarios Registrados</h3>
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="p-4">Nombre</th>
+                                    <th class="p-4">Usuario</th>
+                                    <th class="p-4">Nivel</th>
+                                    <th class="p-4">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body"></tbody>
+                        </table>
                     </div>
-                    <button onclick="openUserModal()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-blue-700 flex items-center gap-2">
-                        <i data-lucide="plus" size="18"></i> Nuevo Usuario
-                    </button>
-                </div>
-                <div id="users-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
-            </section>
+                </section>
 
+            </div>
         </main>
     </div>
 
-    <!-- MODAL USUARIO -->
-    <div id="user-modal" class="modal-overlay fixed inset-0 flex items-center justify-center z-50 p-4 hide">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <h3 class="font-bold text-slate-800 text-lg">Nuevo Usuario</h3>
-                <button onclick="closeUserModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x"></i></button>
-            </div>
-            <form id="user-form" class="p-6 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Nombre Completo</label>
-                    <input id="new-user-name" type="text" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">ID Usuario</label>
-                        <input id="new-user-id" type="text" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Clave</label>
-                        <input id="new-user-pass" type="password" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Rol</label>
-                    <select id="new-user-role" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
-                        <option value="Técnico">Técnico (Carga y Consulta)</option>
-                        <option value="Monitoreo">Monitoreo (Solo Consulta)</option>
-                    </select>
-                </div>
-                <div class="pt-4 flex gap-3">
-                    <button type="button" onclick="closeUserModal()" class="flex-1 px-4 py-2 border border-slate-300 text-slate-700 font-bold rounded-lg hover:bg-slate-50 transition-colors">Cancelar</button>
-                    <button type="submit" class="flex-1 px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-md transition-all">Crear</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
-    <!-- TOAST -->
-    <div id="toast" class="fixed bottom-8 right-8 bg-slate-900 text-white px-6 py-3 rounded-xl shadow-2xl translate-y-20 transition-transform duration-300 z-[100] flex items-center gap-3">
-        <i data-lucide="check-circle-2" id="toast-icon" class="text-green-400"></i>
-        <span id="toast-msg">Operación realizada</span>
-    </div>
-
-    <script>
-        const ROLES = { PROGRAMADOR: 'Programador', TECNICO: 'Técnico', MONITOREO: 'Monitoreo' };
-        
-        const NODOS_INICIALES = [
-            { id: 1, nombre: "Datacenter 18 de Octubre", capacidadTanque: 305, reserva: 230, tasaConsumo: 20 },
-            { id: 2, nombre: "Datacenter El Callao", capacidadTanque: 305, reserva: 280, tasaConsumo: 20 },
-            { id: 3, nombre: "Nodo Bella Vista", capacidadTanque: 100, reserva: 45, tasaConsumo: 6 },
-            { id: 4, nombre: "Nodo Lago Caribe", capacidadTanque: 80, reserva: 20, tasaConsumo: 6 },
-            { id: 5, nombre: "Nodo Las Tunas", capacidadTanque: 1100, reserva: 900, tasaConsumo: 5 },
-            { id: 6, nombre: "Nodo Marite", capacidadTanque: 60, reserva: 15, tasaConsumo: 4 },
-            { id: 7, nombre: "Nodo Pomona", capacidadTanque: 100, reserva: 85, tasaConsumo: 5 },
-            { id: 8, nombre: "Nodo San Rafael", capacidadTanque: 80, reserva: 60, tasaConsumo: 6 },
-            { id: 9, nombre: "Nodo La Concepción", capacidadTanque: 100, reserva: 97, tasaConsumo: 4 },
-            { id: 10, nombre: "Nodo Cabimas", capacidadTanque: 80, reserva: 55, tasaConsumo: 6 },
-            { id: 11, nombre: "Nodo Ciudad Ojeda", capacidadTanque: 80, reserva: 45, tasaConsumo: 6 },
-            { id: 12, nombre: "Nodo Bachaquero", capacidadTanque: 1000, reserva: 700, tasaConsumo: 6 },
-            { id: 13, nombre: "Nodo La Villa del Rosario", capacidadTanque: 20, reserva: 5, tasaConsumo: 6 },
-            { id: 14, nombre: "Nodo Machiques", capacidadTanque: 300, reserva: 150, tasaConsumo: 10 },
-            { id: 15, nombre: "Headend Machiques", capacidadTanque: 150, reserva: 120, tasaConsumo: 8 },
-            { id: 16, nombre: "Nodo San José", capacidadTanque: 40, reserva: 35, tasaConsumo: 4 },
-            { id: 17, nombre: "Nodo Barranquitas", capacidadTanque: 40, reserva: 10, tasaConsumo: 4 },
-            { id: 18, nombre: "Nodo La Cañada", capacidadTanque: 60, reserva: 40, tasaConsumo: 5 },
-            { id: 19, nombre: "Nodo Los Puertos", capacidadTanque: 1100, reserva: 100, tasaConsumo: 6 },
-            { id: 20, nombre: "Nodo Mene Grande", capacidadTanque: 100, reserva: 90, tasaConsumo: 6 },
-            { id: 21, nombre: "Nodo Coro", capacidadTanque: 200, reserva: 150, tasaConsumo: 10 },
-            { id: 22, nombre: "Nodo Dabajuro", capacidadTanque: 150, reserva: 80, tasaConsumo: 5 },
-            { id: 23, nombre: "Nodo Adicora", capacidadTanque: 100, reserva: 70, tasaConsumo: 10 },
-        ];
+        // CONFIGURACIÓN Y ESTADO GLOBAL
+        const firebaseConfig = JSON.parse(window.__firebase_config || '{}');
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const appId = window.__app_id || 'gerencia-app';
 
         let currentUser = null;
-        let currentModule = null;
-        let usuarios = [
-            { id: 1, nombre: 'Administrador Raíz', rol: ROLES.PROGRAMADOR, user: 'admin', pass: 'admin' },
-            { id: 2, nombre: 'Juan Técnico', rol: ROLES.TECNICO, user: 'tech', pass: '123' },
-            { id: 3, nombre: 'Operador Monitor', rol: ROLES.MONITOREO, user: 'view', pass: '123' },
-        ];
+        let localUsers = []; 
+        let authenticatedUser = null;
         
-        let historialEventosPlantas = []; // Global para surtidos y encendidos
-        let inventario = [
-            { id: '1', codigo: 'E-001', nombre: 'Multímetro Digital', marca: 'Fluke', tipo: 'Herramienta', cantidad: 5, departamento: 'Energia' },
-            { id: '2', codigo: 'P-001', nombre: 'Papel A4 Resma', marca: 'Xerox', tipo: 'Insumo', cantidad: 50, departamento: 'Papeleria' },
-            { id: '3', codigo: 'PL-01', nombre: 'Filtro de Aceite G.E.', marca: 'Caterpillar', tipo: 'Repuesto', cantidad: 12, departamento: 'Plantas' }
-        ];
-        let historialInventario = [];
+        const getPublicPath = (col) => collection(db, 'artifacts', appId, 'public', 'data', col);
+        const getUsersPath = () => collection(db, 'artifacts', appId, 'public', 'data', 'app_users');
 
-        window.onload = () => {
-            lucide.createIcons();
-            const now = new Date();
-            document.getElementById('filter-month').value = now.toISOString().slice(0, 7);
-            populateNodosSelect();
-        };
+        // EXPOSICIÓN GLOBAL DE FUNCIONES
+        window.handleLogin = () => {
+            const userIn = document.getElementById('login-user').value;
+            const passIn = document.getElementById('login-pass').value;
+            const found = localUsers.find(u => u.username === userIn && u.pass === passIn);
 
-        // --- SISTEMA DE MÓDULOS ---
-        function toggleModulesMenu() {
-            const dropdown = document.getElementById('modules-dropdown');
-            const chevron = document.getElementById('modules-chevron');
-            dropdown.classList.toggle('dropdown-active');
-            chevron.style.transform = dropdown.classList.contains('dropdown-active') ? 'rotate(180deg)' : 'rotate(0deg)';
-        }
-
-        function selectModule(module) {
-            if (module === 'usuarios_mod' && currentUser.rol !== ROLES.PROGRAMADOR) {
-                showToast("Acceso denegado: Solo Programadores", "shield-off", "red");
-                toggleModulesMenu();
-                return;
-            }
-            currentModule = module;
-            toggleModulesMenu();
-            renderSidebarNav();
-            if (module === 'plantas') setView('dashboard');
-            else if (module === 'inventario') setView('inv-consultar');
-            else if (module === 'usuarios_mod') setView('usuarios');
-        }
-
-        function renderSidebarNav() {
-            const nav = document.getElementById('sidebar-nav');
-            let html = '';
-            if (currentModule === 'plantas') {
-                html = `
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-2">Planta Eléctrica</p>
-                    <button onclick="setView('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-slate-700">
-                        <i data-lucide="search" size="18"></i> Consulta
-                    </button>
-                    ${currentUser.rol !== ROLES.MONITOREO ? `
-                        <button onclick="setView('ingreso')" id="nav-ingreso" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-slate-700">
-                            <i data-lucide="edit-3" size="18"></i> Ingreso de Datos
-                        </button>
-                    ` : ''}
-                `;
-            } else if (currentModule === 'inventario') {
-                html = `
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-2">Suministros</p>
-                    <button onclick="setView('inv-consultar')" id="nav-inv-consultar" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-slate-700">
-                        <i data-lucide="clipboard-list" size="18"></i> Consultar
-                    </button>
-                    ${currentUser.rol !== ROLES.MONITOREO ? `
-                        <button onclick="setView('inv-ingresar')" id="nav-inv-ingresar" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-slate-700">
-                            <i data-lucide="package-plus" size="18"></i> Ingresar
-                        </button>
-                        <button onclick="setView('inv-retirar')" id="nav-inv-retirar" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-slate-700">
-                            <i data-lucide="package-minus" size="18"></i> Retirar
-                        </button>
-                    ` : ''}
-                    <button onclick="setView('inv-historial')" id="nav-inv-historial" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-slate-700">
-                        <i data-lucide="history" size="18"></i> Historial
-                    </button>
-                `;
-            } else if (currentModule === 'usuarios_mod') {
-                html = `
-                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-4 mb-2">Seguridad</p>
-                    <button onclick="setView('usuarios')" id="nav-usuarios" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-slate-700">
-                        <i data-lucide="users" size="18"></i> Gestión Usuarios
-                    </button>
-                `;
-            }
-            nav.innerHTML = html;
-            lucide.createIcons();
-        }
-
-        function setView(view) {
-            const sections = ['welcome', 'dashboard', 'ingreso', 'inv-consultar', 'inv-ingresar', 'inv-retirar', 'inv-historial', 'usuarios'];
-            sections.forEach(s => document.getElementById(`view-${s}`).classList.add('hide'));
-            
-            const header = document.getElementById('main-view-header');
-            const filters = document.getElementById('dashboard-filters');
-            const searchBox = document.getElementById('inventory-search-box');
-            
-            header.classList.add('hide');
-            filters.classList.add('hide');
-            searchBox.classList.add('hide');
-
-            const sectionEl = document.getElementById(`view-${view}`);
-            if (sectionEl) sectionEl.classList.remove('hide');
-
-            if (view === 'welcome') return;
-
-            header.classList.remove('hide');
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-btn-active'));
-            const activeBtn = document.getElementById(`nav-${view}`);
-            if (activeBtn) activeBtn.classList.add('nav-btn-active');
-
-            if (view === 'dashboard') {
-                document.getElementById('view-title').innerText = "Consulta de Plantas";
-                filters.classList.remove('hide');
-                updateDashboard();
-            } else if (view === 'ingreso') {
-                document.getElementById('view-title').innerText = "Ingreso Operativo";
-                populateManualSelects();
-            } else if (view === 'inv-consultar') {
-                document.getElementById('view-title').innerText = "Consulta de Inventario";
-                searchBox.classList.remove('hide');
-                renderInventoryTable();
-            } else if (view === 'inv-ingresar') {
-                document.getElementById('view-title').innerText = "Ingreso de Inventario";
-            } else if (view === 'inv-retirar') {
-                document.getElementById('view-title').innerText = "Salida de Inventario";
-                populateRetireSelect();
-            } else if (view === 'inv-historial') {
-                document.getElementById('view-title').innerText = "Historial Inventario";
-                renderInventoryHistory();
-            } else if (view === 'usuarios') {
-                document.getElementById('view-title').innerText = "Gestión de Usuarios";
-                renderUsersGrid();
-            }
-        }
-
-        // --- LÓGICA DE INGRESO MANUAL PLANTAS ---
-        function switchIngresoTab(tab) {
-            document.getElementById('tab-manual').className = tab === 'manual' ? 'px-6 py-3 font-bold text-sm tracking-widest uppercase transition-all tab-active' : 'px-6 py-3 font-bold text-sm tracking-widest uppercase text-slate-400 transition-all';
-            document.getElementById('tab-csv').className = tab === 'csv' ? 'px-6 py-3 font-bold text-sm tracking-widest uppercase transition-all tab-active' : 'px-6 py-3 font-bold text-sm tracking-widest uppercase text-slate-400 transition-all';
-            
-            if (tab === 'manual') {
-                document.getElementById('ingreso-manual').classList.remove('hide');
-                document.getElementById('ingreso-csv').classList.add('hide');
-            } else {
-                document.getElementById('ingreso-manual').classList.add('hide');
-                document.getElementById('ingreso-csv').classList.remove('hide');
-            }
-        }
-
-        function populateManualSelects() {
-            const options = NODOS_INICIALES.map(n => `<option value="${n.id}">${n.nombre}</option>`).join('');
-            document.getElementById('manual-node-zap').innerHTML = options;
-            document.getElementById('manual-node-fuel').innerHTML = options;
-        }
-
-        // --- SISTEMA DE REGISTRO EN PLANTAS ---
-        function addPlantEvent(nodeId, tipo, cantidad, ref) {
-            historialEventosPlantas.unshift({
-                id: Date.now(),
-                nodoId: nodeId,
-                fecha: new Date().toLocaleString(),
-                mesAnio: new Date().toISOString().slice(0, 7), // Para filtrado
-                tipo,
-                cantidad,
-                usuario: currentUser?.nombre || 'Sist.',
-                ref
-            });
-        }
-
-        document.getElementById('form-manual-encendido').onsubmit = (e) => {
-            e.preventDefault();
-            const nodeId = parseInt(document.getElementById('manual-node-zap').value);
-            const hours = parseFloat(document.getElementById('manual-hours').value);
-            const node = NODOS_INICIALES.find(n => n.id === nodeId);
-            
-            if (node) {
-                const consumoTotal = hours * node.tasaConsumo;
-                if (consumoTotal > node.reserva) {
-                    showToast("Error: Consumo mayor a la reserva actual", "alert-triangle", "red");
-                    return;
-                }
-                node.reserva -= consumoTotal;
-                addPlantEvent(nodeId, "ENCENDIDO", `${hours}h`, `Consumo: ${consumoTotal.toFixed(1)}L`);
-                showToast(`Encendido guardado: -${consumoTotal.toFixed(1)}L`, "zap", "orange");
-                document.getElementById('form-manual-encendido').reset();
-            }
-        };
-
-        document.getElementById('form-manual-surtido').onsubmit = (e) => {
-            e.preventDefault();
-            const nodeId = parseInt(document.getElementById('manual-node-fuel').value);
-            const liters = parseInt(document.getElementById('manual-liters').value);
-            const node = NODOS_INICIALES.find(n => n.id === nodeId);
-            
-            if (node) {
-                let actualLiters = liters;
-                if (node.reserva + liters > node.capacidadTanque) {
-                    actualLiters = node.capacidadTanque - node.reserva;
-                    node.reserva = node.capacidadTanque;
-                    showToast("Surtido completado al máximo del tanque", "droplet");
-                } else {
-                    node.reserva += liters;
-                    showToast(`Surtido registrado: +${liters}L`, "droplet", "blue");
-                }
-                addPlantEvent(nodeId, "SURTIDO", `${actualLiters}L`, "Carga de combustible");
-                document.getElementById('form-manual-surtido').reset();
-            }
-        };
-
-        // --- LÓGICA DE INVENTARIO ---
-        function addHistoryEntry(accion, codigo, nombre, cantidad, detalle = "-") {
-            historialInventario.unshift({
-                id: Date.now(),
-                fecha: new Date().toLocaleString(),
-                accion, codigo, nombre, cantidad, detalle,
-                usuario: currentUser?.nombre || 'Sist.'
-            });
-        }
-
-        document.getElementById('inv-form').onsubmit = (e) => {
-            e.preventDefault();
-            const newItem = {
-                id: Date.now().toString(),
-                codigo: document.getElementById('inv-cod').value,
-                nombre: document.getElementById('inv-nom').value,
-                marca: document.getElementById('inv-mar').value,
-                tipo: document.getElementById('inv-tip').value,
-                cantidad: parseInt(document.getElementById('inv-can').value),
-                departamento: document.getElementById('inv-dep').value
-            };
-            inventario.push(newItem);
-            addHistoryEntry("CREACIÓN", newItem.codigo, newItem.nombre, newItem.cantidad, "Nuevo ingreso");
-            showToast("Artículo agregado", "check");
-            document.getElementById('inv-form').reset();
-            setView('inv-consultar');
-        };
-
-        function populateRetireSelect() {
-            const select = document.getElementById('retire-item-id');
-            select.innerHTML = '<option value="" disabled selected>Seleccione...</option>' + 
-                inventario.map(i => `<option value="${i.id}">${i.nombre} (${i.codigo})</option>`).join('');
-            document.getElementById('retire-current-stock').innerText = "0";
-        }
-
-        function updateMaxRetire() {
-            const item = inventario.find(i => i.id === document.getElementById('retire-item-id').value);
-            if (item) document.getElementById('retire-current-stock').innerText = item.cantidad;
-        }
-
-        document.getElementById('retire-form').onsubmit = (e) => {
-            e.preventDefault();
-            const id = document.getElementById('retire-item-id').value;
-            const qty = parseInt(document.getElementById('retire-qty').value);
-            const item = inventario.find(i => i.id === id);
-            
-            if (item && qty <= item.cantidad) {
-                item.cantidad -= qty;
-                addHistoryEntry("RETIRADA", item.codigo, item.nombre, qty, document.getElementById('retire-reason').value);
-                showToast(`Retiro de ${qty} exitoso`, "package-minus", "orange");
-                document.getElementById('retire-form').reset();
-                setView('inv-consultar');
-            } else {
-                showToast("Stock insuficiente", "alert-circle", "red");
-            }
-        };
-
-        function renderInventoryTable() {
-            const query = document.getElementById('search-inv').value.toLowerCase();
-            const filtered = inventario.filter(i => i.codigo.toLowerCase().includes(query) || i.nombre.toLowerCase().includes(query));
-            document.getElementById('inv-count').innerText = `${filtered.length} items`;
-            
-            document.getElementById('inv-table-body').innerHTML = filtered.map(i => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-6 py-4 font-mono font-bold text-blue-600">${i.codigo}</td>
-                    <td class="px-6 py-4 font-medium">${i.nombre}</td>
-                    <td class="px-6 py-4 text-slate-500">${i.marca}</td>
-                    <td class="px-6 py-4"><span class="bg-slate-100 px-2 py-1 rounded text-[10px] font-bold uppercase text-slate-600">${i.tipo}</span></td>
-                    <td class="px-6 py-4 text-slate-500">${i.departamento}</td>
-                    <td class="px-6 py-4 text-center font-bold ${i.cantidad <= 2 ? 'text-red-500 animate-pulse' : ''}">${i.cantidad}</td>
-                    <td class="px-6 py-4 text-right">
-                        ${currentUser.rol !== ROLES.MONITOREO ? `<button onclick="deleteInventoryItem('${i.id}')" class="text-red-400 hover:text-red-600"><i data-lucide="trash-2" size="16"></i></button>` : '<i data-lucide="lock" class="w-4 h-4 text-slate-300 mx-auto"></i>'}
-                    </td>
-                </tr>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        function deleteInventoryItem(id) {
-            const index = inventario.findIndex(i => i.id === id);
-            if (index !== -1 && confirm("¿Eliminar definitivamente?")) {
-                const item = inventario[index];
-                addHistoryEntry("ELIMINACIÓN", item.codigo, item.nombre, item.cantidad, "Borrado total");
-                inventario.splice(index, 1);
-                showToast("Artículo eliminado", "trash", "red");
-                renderInventoryTable();
-            }
-        }
-
-        function renderInventoryHistory() {
-            const tbody = document.getElementById('inv-history-body');
-            const empty = document.getElementById('history-empty');
-            if (historialInventario.length === 0) {
-                tbody.innerHTML = '';
-                empty.classList.remove('hide');
-            } else {
-                empty.classList.add('hide');
-                tbody.innerHTML = historialInventario.map(h => `
-                    <tr class="hover:bg-slate-50">
-                        <td class="px-6 py-4 text-slate-500 text-xs">${h.fecha}</td>
-                        <td class="px-6 py-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${h.accion === 'CREACIÓN' ? 'bg-green-100 text-green-700' : h.accion === 'RETIRADA' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'}">${h.accion}</span></td>
-                        <td class="px-6 py-4 font-mono text-xs">${h.codigo}</td>
-                        <td class="px-6 py-4 font-medium">${h.nombre}</td>
-                        <td class="px-6 py-4 text-center font-bold">${h.cantidad}</td>
-                        <td class="px-6 py-4 text-slate-500 text-xs italic">${h.detalle}</td>
-                        <td class="px-6 py-4 text-slate-600 text-xs">${h.usuario}</td>
-                    </tr>
-                `).join('');
-            }
-            lucide.createIcons();
-        }
-
-        // --- GESTIÓN USUARIOS ---
-        function renderUsersGrid() {
-            document.getElementById('users-grid').innerHTML = usuarios.map(u => `
-                <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm relative group">
-                    <div class="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400"><i data-lucide="user"></i></div>
-                            <div><h4 class="font-bold text-slate-800">${u.nombre}</h4><span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 uppercase">${u.rol}</span></div>
-                        </div>
-                        ${u.user !== 'admin' ? `<button onclick="deleteUser(${u.id})" class="p-2 text-slate-300 hover:text-red-500 group-hover:opacity-100 opacity-0 transition-all"><i data-lucide="trash-2" size="18"></i></button>` : ''}
-                    </div>
-                    <p class="text-xs text-slate-500">Acceso: <span class="font-mono text-slate-700 font-bold">${u.user}</span></p>
-                </div>
-            `).join('');
-            lucide.createIcons();
-        }
-
-        function deleteUser(id) {
-            const idx = usuarios.findIndex(u => u.id === id);
-            if (idx !== -1 && confirm("¿Revocar acceso?")) {
-                usuarios.splice(idx, 1);
-                renderUsersGrid();
-                showToast("Usuario eliminado", "user-minus", "red");
-            }
-        }
-
-        document.getElementById('user-form').onsubmit = (e) => {
-            e.preventDefault();
-            usuarios.push({
-                id: Date.now(),
-                nombre: document.getElementById('new-user-name').value,
-                user: document.getElementById('new-user-id').value,
-                pass: document.getElementById('new-user-pass').value,
-                rol: document.getElementById('new-user-role').value
-            });
-            closeUserModal(); renderUsersGrid(); showToast("Usuario creado", "user-plus");
-            document.getElementById('user-form').reset();
-        };
-
-        // --- AUTH ---
-        document.getElementById('login-form').onsubmit = (e) => {
-            e.preventDefault();
-            const u = document.getElementById('login-user').value;
-            const p = document.getElementById('login-pass').value;
-            const found = usuarios.find(usr => usr.user === u && usr.pass === p);
             if (found) {
                 currentUser = found;
-                document.getElementById('login-screen').classList.add('hide');
-                document.getElementById('app-container').classList.remove('hide');
-                document.getElementById('menu-btn-usuarios').className = currentUser.rol === ROLES.PROGRAMADOR ? 'w-full text-left px-4 py-2 text-sm hover:bg-slate-700 rounded-lg flex items-center gap-2 transition-colors' : 'hide';
-                updateUserDisplay(); setView('welcome');
-            } else showToast("Error de acceso", "x-circle", "red");
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                document.getElementById('user-display').innerText = `${found.fullname} (${found.level})`;
+                applyPermissions(found.level);
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
         };
 
-        function logout() { currentUser = null; document.getElementById('login-screen').classList.remove('hide'); document.getElementById('app-container').classList.add('hide'); }
-        function updateUserDisplay() {
-            document.getElementById('user-display-name').innerText = currentUser.nombre;
-            document.getElementById('user-display-role').innerText = currentUser.rol;
-            document.getElementById('user-avatar').innerText = currentUser.nombre.charAt(0);
-        }
+        window.handleLogout = () => location.reload();
 
-        // --- DASHBOARD (ACTUALIZADO CON HISTORIAL) ---
-        function populateNodosSelect() {
-            const select = document.getElementById('filter-nodo');
-            select.innerHTML = NODOS_INICIALES.map(n => `<option value="${n.id}">${n.nombre}</option>`).join('');
-            select.onchange = updateDashboard;
-            document.getElementById('filter-month').onchange = updateDashboard;
-        }
+        window.showModule = (modId) => {
+            const sections = ['inventario', 'plantas', 'usuarios'];
+            sections.forEach(s => document.getElementById(`mod-${s}`).classList.add('hidden'));
+            document.getElementById(`mod-${modId}`).classList.remove('hidden');
+            document.getElementById('module-title').innerText = modId;
+        };
 
-        function updateDashboard() {
-            const nodeId = parseInt(document.getElementById('filter-nodo').value);
-            const monthId = document.getElementById('filter-month').value;
-            const nodo = NODOS_INICIALES.find(n => n.id === nodeId) || NODOS_INICIALES[0];
-            
-            // Stats principales
-            document.getElementById('stat-reserva').innerText = `${nodo.capacidadTanque}L / ${nodo.reserva.toFixed(0)}L`;
-            const fuelPerc = (nodo.reserva / nodo.capacidadTanque) * 100;
-            const prog = document.getElementById('stat-progress-fuel');
-            prog.style.width = Math.min(fuelPerc, 100) + '%';
-            prog.className = fuelPerc < 20 ? 'bg-red-500 h-1.5 rounded-full' : 'bg-blue-500 h-1.5 rounded-full';
-            
-            // Stats Dinámicos (Filtrados por mes)
-            const historialMesNodo = historialEventosPlantas.filter(h => h.nodoId === nodeId && h.mesAnio === monthId);
-            
-            const totalSurtido = historialMesNodo
-                .filter(h => h.tipo === 'SURTIDO')
-                .reduce((acc, curr) => acc + parseInt(curr.cantidad), 0);
-            
-            const totalHoras = historialMesNodo
-                .filter(h => h.tipo === 'ENCENDIDO')
-                .reduce((acc, curr) => acc + parseFloat(curr.cantidad), 0);
+        window.showSubmodule = (subId) => {
+            const parent = document.getElementById(subId).parentElement;
+            parent.querySelectorAll('.submodule').forEach(s => s.classList.add('hidden'));
+            document.getElementById(subId).classList.remove('hidden');
+        };
 
-            document.getElementById('stat-surtido').innerText = `${totalSurtido} L`;
-            document.getElementById('stat-horas').innerText = `${totalHoras.toFixed(1)}h`;
-            
-            renderPlantHistory(historialMesNodo);
-        }
+        window.toggleSidebar = () => {
+            const sb = document.getElementById('sidebar');
+            sb.classList.toggle('w-0');
+            sb.classList.toggle('overflow-hidden');
+        };
 
-        function renderPlantHistory(filteredHistory) {
-            const tbody = document.getElementById('plant-history-body');
-            const empty = document.getElementById('plant-history-empty');
-            
-            if (filteredHistory.length === 0) {
-                tbody.innerHTML = '';
-                empty.classList.remove('hide');
-            } else {
-                empty.classList.add('hide');
-                tbody.innerHTML = filteredHistory.map(h => `
-                    <tr class="hover:bg-slate-50">
-                        <td class="px-6 py-4 text-slate-500 font-mono text-xs">${h.fecha}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase ${h.tipo === 'SURTIDO' ? 'bg-blue-50 text-blue-600' : 'bg-yellow-50 text-yellow-700'}">
-                                <i data-lucide="${h.tipo === 'SURTIDO' ? 'droplet' : 'zap'}" class="inline w-3 h-3 mr-1"></i> ${h.tipo}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 font-bold text-slate-700">${h.cantidad}</td>
-                        <td class="px-6 py-4 text-slate-500 text-xs">${h.usuario}</td>
-                        <td class="px-6 py-4 text-slate-400 text-xs italic">${h.ref}</td>
-                    </tr>
-                `).join('');
+        window.createUser = async () => {
+            if (!authenticatedUser) return;
+            const fullname = document.getElementById('user-fullname').value;
+            const username = document.getElementById('user-name').value;
+            const pass = document.getElementById('user-pass').value;
+            const level = document.getElementById('user-level').value;
+            if (!fullname || !username || !pass) return;
+            await addDoc(getUsersPath(), { fullname, username, pass, level });
+            document.getElementById('user-fullname').value = "";
+            document.getElementById('user-name').value = "";
+            document.getElementById('user-pass').value = "";
+        };
+
+        window.deleteUser = async (id) => {
+            if (!authenticatedUser) return;
+            if (confirm('¿Eliminar este usuario?')) await deleteDoc(doc(getUsersPath(), id));
+        };
+
+        window.saveItem = async () => {
+            if (!authenticatedUser) return;
+            const data = {
+                code: document.getElementById('inv-code').value,
+                name: document.getElementById('inv-name').value,
+                brand: document.getElementById('inv-brand').value,
+                type: document.getElementById('inv-type').value,
+                qty: parseInt(document.getElementById('inv-qty').value),
+                dept: document.getElementById('inv-dept').value
+            };
+            if (!data.code || isNaN(data.qty)) return;
+            await setDoc(doc(getPublicPath('inventario'), data.code), data);
+            await addDoc(getPublicPath('inv_history'), {
+                timestamp: Date.now(),
+                action: 'INGRESO',
+                code: data.code,
+                qty: data.qty,
+                extra: `Depto: ${data.dept}`
+            });
+            alert('Ingresado con éxito');
+        };
+
+        window.withdrawItem = async () => {
+            if (!authenticatedUser) return;
+            const code = document.getElementById('ret-code').value;
+            const qty = parseInt(document.getElementById('ret-qty').value);
+            const dest = document.getElementById('ret-dest').value;
+            const authBy = document.getElementById('ret-auth').value;
+            const docRef = doc(getPublicPath('inventario'), code);
+            const snap = await getDoc(docRef);
+            if (snap.exists()) {
+                const currentQty = snap.data().qty;
+                if (currentQty >= qty) {
+                    await updateDoc(docRef, { qty: currentQty - qty });
+                    await addDoc(getPublicPath('inv_history'), {
+                        timestamp: Date.now(),
+                        action: 'RETIRO',
+                        code: code,
+                        qty: qty,
+                        extra: `Destino: ${dest} | Autoriza: ${authBy}`
+                    });
+                    alert('Retiro exitoso');
+                } else alert('Cantidad insuficiente');
+            } else alert('Artículo no encontrado');
+        };
+
+        window.createNewPlant = async () => {
+            if (!authenticatedUser) return;
+            const name = document.getElementById('pl-name-new').value;
+            if (!name) return;
+            await setDoc(doc(getPublicPath('plantas'), name), { name });
+            document.getElementById('pl-name-new').value = "";
+            alert('Planta creada');
+        };
+
+        window.savePlantLog = async () => {
+            if (!authenticatedUser) return;
+            const name = document.getElementById('pl-select-reg').value;
+            const gas = parseFloat(document.getElementById('pl-gas').value);
+            const hrs = parseFloat(document.getElementById('pl-hrs').value);
+            if (!name) return;
+            await addDoc(getPublicPath('plantas_logs'), {
+                plantName: name, gas: gas || 0, hrs: hrs || 0,
+                timestamp: Date.now(), dateStr: new Date().toISOString().split('T')[0]
+            });
+            alert('Registro guardado');
+        };
+
+        window.deletePlantLog = async (id) => {
+            if (!authenticatedUser) return;
+            if (currentUser?.level === 'ADMINISTRADOR' && confirm('¿Eliminar este registro?')) {
+                await deleteDoc(doc(getPublicPath('plantas_logs'), id));
             }
-            lucide.createIcons();
-        }
-   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBkN6mE0YqWeAToslbgOAta80gjYi_C4Xk",
-  authDomain: "gerencia-de-energia.firebaseapp.com",
-  projectId: "gerencia-de-energia",
-  storageBucket: "gerencia-de-energia.firebasestorage.app",
-  messagingSenderId: "347966041919",
-  appId: "1:347966041919:web:40cfe12b6dbba953712d8a",
-  measurementId: "G-YMWMWKQYDL"
-};  
-        function showToast(msg, icon = "check-circle-2", color = "green") {
-            const t = document.getElementById('toast');
-            const i = document.getElementById('toast-icon');
-            document.getElementById('toast-msg').innerText = msg;
-            i.setAttribute('data-lucide', icon);
-            i.className = { green: 'text-green-400', red: 'text-red-400', orange: 'text-orange-400', blue: 'text-blue-400' }[color] || 'text-green-400';
-            lucide.createIcons();
-            t.classList.remove('translate-y-20');
-            setTimeout(() => t.classList.add('translate-y-20'), 3000);
+        };
+
+        window.renderPlantsList = async () => {
+            if (!authenticatedUser) return;
+            const plantasSnap = await getDocs(getPublicPath('plantas'));
+            const plantas = plantasSnap.docs.map(d => d.data());
+            const logsSnap = await getDocs(getPublicPath('plantas_logs'));
+            const allLogs = logsSnap.docs.map(d => d.data());
+            
+            const from = document.getElementById('filter-from').value;
+            const to = document.getElementById('filter-to').value;
+            const body = document.getElementById('pl-table-body');
+            
+            body.innerHTML = plantas.map(p => {
+                const filteredLogs = allLogs.filter(l => {
+                    const matchPlant = l.plantName === p.name;
+                    const matchFrom = from ? l.dateStr >= from : true;
+                    const matchTo = to ? l.dateStr <= to : true;
+                    return matchPlant && matchFrom && matchTo;
+                });
+                const totalGas = filteredLogs.reduce((acc, curr) => acc + curr.gas, 0);
+                const totalHrs = filteredLogs.reduce((acc, curr) => acc + curr.hrs, 0);
+                return `<tr class="border-b"><td class="p-4 font-bold">${p.name}</td><td class="p-4 text-green-700 font-bold">${totalGas} L</td><td class="p-4 text-orange-700 font-bold">${totalHrs} Hrs</td></tr>`;
+            }).join('');
+        };
+
+        // RENDER HELPERS
+        function renderUsers() {
+            const body = document.getElementById('users-table-body');
+            body.innerHTML = localUsers.map(u => `
+                <tr class="border-b">
+                    <td class="p-4">${u.fullname}</td>
+                    <td class="p-4 font-mono">${u.username}</td>
+                    <td class="p-4 text-xs font-bold">${u.level}</td>
+                    <td class="p-4 text-red-500 cursor-pointer" onclick="deleteUser('${u.id}')">${u.username !== 'Admin' ? 'Eliminar' : ''}</td>
+                </tr>
+            `).join('');
         }
 
-        function openUserModal() { document.getElementById('user-modal').classList.remove('hide'); }
-        function closeUserModal() { document.getElementById('user-modal').classList.add('hide'); }
+        function renderInventory(items) {
+            const body = document.getElementById('inv-table-body');
+            body.innerHTML = items.map(i => `<tr class="border-b hover:bg-gray-50"><td class="p-4 font-bold text-indigo-600">${i.code}</td><td class="p-4">${i.name}</td><td class="p-4">${i.brand}</td><td class="p-4">${i.type}</td><td class="p-4"><span class="bg-indigo-100 px-2 py-1 rounded text-indigo-800 font-bold">${i.qty}</span></td></tr>`).join('');
+        }
+
+        function renderInventoryHistory(hist) {
+            const body = document.getElementById('inv-hist-body');
+            hist.sort((a,b) => b.timestamp - a.timestamp);
+            body.innerHTML = hist.map(h => `<tr class="border-b text-sm"><td class="p-4">${new Date(h.timestamp).toLocaleString()}</td><td class="p-4 font-bold ${h.action === 'INGRESO' ? 'text-green-600' : 'text-orange-600'}">${h.action}</td><td class="p-4">${h.code}</td><td class="p-4">${h.qty}</td><td class="p-4 text-xs italic">${h.extra}</td></tr>`).join('');
+        }
+
+        function renderPlantHistory(logs) {
+            const body = document.getElementById('pl-hist-body');
+            logs.sort((a,b) => b.timestamp - a.timestamp);
+            body.innerHTML = logs.map(l => `<tr class="border-b text-sm"><td class="p-4">${l.dateStr}</td><td class="p-4 font-bold">${l.plantName}</td><td class="p-4">${l.gas} L</td><td class="p-4">${l.hrs} Hrs</td><td class="p-4">${currentUser?.level === 'ADMINISTRADOR' ? `<button onclick="deletePlantLog('${l.id}')" class="text-red-500">Eliminar</button>` : ''}</td></tr>`).join('');
+        }
+
+        function applyPermissions(level) {
+            if (level === 'ADMINISTRADOR') {
+                document.getElementById('nav-usuarios').classList.remove('hidden');
+                document.getElementById('btn-pl-add').classList.remove('hidden');
+            }
+            if (level === 'OBSERVADOR') {
+                document.getElementById('btn-inv-add').classList.add('hidden');
+                document.getElementById('btn-inv-ret').classList.add('hidden');
+                document.getElementById('btn-pl-reg').classList.add('hidden');
+            }
+        }
+
+        // FUNCIÓN PARA INICIAR LISTENERS (SOLO TRAS AUTH)
+        function startFirestoreListeners(user) {
+            authenticatedUser = user;
+            document.getElementById('connection-status').classList.replace('bg-connection-fail', 'bg-connection-ok');
+
+            onSnapshot(getUsersPath(), (snapshot) => {
+                localUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                if (!localUsers.find(u => u.username === 'Admin')) {
+                    setDoc(doc(getUsersPath(), 'admin_default'), {
+                        fullname: 'Administrador Sistema', username: 'Admin', pass: 'admin1', level: 'ADMINISTRADOR'
+                    });
+                }
+                renderUsers();
+            }, (err) => {
+                console.error("Users sync error", err);
+                document.getElementById('connection-status').classList.replace('bg-connection-ok', 'bg-connection-fail');
+            });
+
+            onSnapshot(getPublicPath('inventario'), (snap) => renderInventory(snap.docs.map(d => d.data())), (err) => console.error("Inventory sync error", err));
+            onSnapshot(getPublicPath('inv_history'), (snap) => renderInventoryHistory(snap.docs.map(d => d.data())), (err) => console.error("History sync error", err));
+            onSnapshot(getPublicPath('plantas'), (snap) => {
+                const plantas = snap.docs.map(d => d.data());
+                window.renderPlantsList(); 
+                document.getElementById('pl-select-reg').innerHTML = plantas.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+            }, (err) => console.error("Plants sync error", err));
+            onSnapshot(getPublicPath('plantas_logs'), (snap) => renderPlantHistory(snap.docs.map(d => ({id: d.id, ...d.data()}))), (err) => console.error("Logs sync error", err));
+        }
+
+        // INICIALIZACIÓN
+        window.addEventListener('load', async () => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            // Escuchamos el estado de autenticación
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    startFirestoreListeners(user);
+                }
+            });
+
+            // Proceso de autenticación inicial (Obligatorio antes de consultas)
+            try {
+                if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) {
+                    await signInWithCustomToken(auth, window.__initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) { 
+                console.error("Firebase Auth failed", err); 
+                document.getElementById('connection-status').classList.replace('bg-connection-ok', 'bg-connection-fail');
+            }
+        });
+
     </script>
-                    
 </body>
 </html>
-
-
-
-
-
-
