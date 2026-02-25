@@ -2,252 +2,305 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gerencia - Sistema de Gestión</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/lucide.min.js"></script>
     <style>
-        .sidebar-transition { transition: all 0.3s ease; }
-        .hidden-module { display: none; }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        /* Transiciones suaves para la barra lateral */
+        .sidebar-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Estado Colapsado (Desktop) */
+        @media (min-width: 768px) {
+            .sidebar-collapsed { width: 5rem !important; }
+            .sidebar-collapsed .nav-text, .sidebar-collapsed .logo-text { display: none; }
+            .sidebar-collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+            .sidebar-collapsed .nav-item i { margin-right: 0; }
+        }
+
+        /* Comportamiento Móvil (Android/iOS) */
+        @media (max-width: 767px) {
+            #sidebar {
+                position: fixed;
+                z-index: 40;
+                height: 100vh;
+                left: -100%;
+            }
+            #sidebar.mobile-open {
+                left: 0;
+                width: 80%;
+            }
+            .overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 30;
+            }
+            .overlay.active { display: block; }
+        }
+
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
         .bg-connection-ok { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
         .bg-connection-fail { background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
+
+        /* Estilo de tablas responsivas */
+        .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
-<body class="bg-gray-50 font-sans text-gray-900">
-    
+<body class="bg-gray-50 font-sans text-gray-900 overflow-x-hidden">
+
+    <!-- Overlay para móvil -->
+    <div id="sidebar-overlay" class="overlay" onclick="toggleSidebar()"></div>
+
     <!-- Pantalla de Despedida -->
-    <div id="logout-screen" class="fixed inset-0 z-[100] hidden bg-white flex flex-col items-center justify-center text-center fade-in">
+    <div id="logout-screen" class="fixed inset-0 z-[100] hidden bg-white flex flex-col items-center justify-center text-center fade-in px-4">
         <div class="bg-indigo-50 p-6 rounded-full mb-6 text-indigo-600">
             <i data-lucide="heart" class="w-16 h-16 fill-current"></i>
         </div>
-        <h2 class="text-3xl font-bold text-gray-800 mb-2">¡Hasta pronto!</h2>
-        <p class="text-xl text-gray-600">Gracias por utilizar nuestros servicios</p>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">¡Hasta pronto!</h2>
+        <p class="text-gray-600">Gracias por utilizar nuestros servicios</p>
         <div class="mt-8">
-            <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"></div>
+            <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
         </div>
     </div>
-   <!-- Login Overlay -->
-    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900">
-        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md">
-            <h1 class="text-3xl font-bold text-center mb-6 text-indigo-600">GERENCIA DE ENERGIA</h1>
+
+    <!-- Login Overlay -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 px-4">
+        <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-sm">
+            <h1 class="text-2xl font-bold text-center mb-6 text-indigo-600">GERENCIA ENERGÍA</h1>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium">Usuario</label>
-                    <input type="text" id="login-user" class="w-full p-2 border rounded mt-1 focus:ring-2 focus:ring-indigo-400 outline-none">
+                    <label class="block text-xs font-semibold uppercase text-gray-500">Usuario</label>
+                    <input type="text" id="login-user" class="w-full p-3 border rounded-lg mt-1 focus:ring-2 focus:ring-indigo-400 outline-none transition-all">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium">Contraseña</label>
-                    <input type="password" id="login-pass" class="w-full p-2 border rounded mt-1 focus:ring-2 focus:ring-indigo-400 outline-nonetransition-alltext-sm" placeholder="••••••••">
+                    <label class="block text-xs font-semibold uppercase text-gray-500">Contraseña</label>
+                    <input type="password" id="login-pass" class="w-full p-3 border rounded-lg mt-1 focus:ring-2 focus:ring-indigo-400 outline-none transition-all" placeholder="••••••••">
                 </div>
-                <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-semibold hover:bg-indigo-700 transition">Ingresar</button>
+                <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 active:scale-95 transition-all">Ingresar</button>
             </div>
             <p id="login-error" class="text-red-500 text-sm mt-4 hidden text-center">Credenciales incorrectas.</p>
         </div>
     </div>
 
-    <!-- Main Layout (Hidden until Login) -->
+    <!-- Main Layout -->
     <div id="main-app" class="hidden flex h-screen overflow-hidden">
         
         <!-- Sidebar -->
-        <aside id="sidebar" class="bg-indigo-900 text-white w-25 flex-shrink-0 sidebar-transition">
-            <div class="p-6 flex items-center justify-between">
-                <span class="text-xl font-bold tracking-wider">GERENCIA</span>
-                <button onclick="toggleSidebar()" class="lg:hidden"><i data-lucide="menu"></i></button>
+        <aside id="sidebar" class="bg-indigo-950 text-white w-64 flex-shrink-0 sidebar-transition flex flex-col border-r border-indigo-800 shadow-xl">
+            <div class="p-5 flex items-center justify-between">
+                <span class="text-lg font-bold tracking-tighter logo-text overflow-hidden whitespace-nowrap">SISTEMA</span>
+                <button onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-indigo-800 active:bg-indigo-700 transition">
+                    <i data-lucide="chevron-left" id="toggle-icon-desktop" class="w-5 h-5 hidden md:block"></i>
+                    <i data-lucide="x" class="w-6 h-6 md:hidden"></i>
+                </button>
             </div>
             
-            <nav class="mt-6 px-4 space-y-2">
-                <button onclick="showModule('inventario')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-800 transition">
-                    <i data-lucide="package" class="mr-3"></i> Inventario
+            <nav class="flex-1 mt-4 px-3 space-y-1">
+                <button onclick="navigate('inventario')" class="nav-item w-full flex items-center p-3 rounded-xl hover:bg-indigo-800 transition text-left group">
+                    <i data-lucide="package" class="w-5 h-5 mr-3 flex-shrink-0 group-hover:scale-110 transition"></i> 
+                    <span class="nav-text text-sm font-medium">Inventario</span>
                 </button>
-                <button onclick="showModule('plantas')" class="w-full flex items-center p-3 rounded-lg hover:bg-indigo-800 transition">
-                    <i data-lucide="factory" class="mr-3"></i> Plantas
+                <button onclick="navigate('plantas')" class="nav-item w-full flex items-center p-3 rounded-xl hover:bg-indigo-800 transition text-left group">
+                    <i data-lucide="factory" class="w-5 h-5 mr-3 flex-shrink-0 group-hover:scale-110 transition"></i> 
+                    <span class="nav-text text-sm font-medium">Plantas</span>
                 </button>
-                <button id="nav-usuarios" onclick="showModule('usuarios')" class="w-full hidden flex items-center p-3 rounded-lg hover:bg-indigo-800 transition">
-                    <i data-lucide="users" class="mr-3"></i> Usuarios
+                <button id="nav-usuarios" onclick="navigate('usuarios')" class="nav-item w-full hidden flex items-center p-3 rounded-xl hover:bg-indigo-800 transition text-left group">
+                    <i data-lucide="users" class="w-5 h-5 mr-3 flex-shrink-0 group-hover:scale-110 transition"></i> 
+                    <span class="nav-text text-sm font-medium">Usuarios</span>
                 </button>
-                <div class="pt-10">
-                    <button onclick="handleLogout()" class="w-full flex items-center p-3 rounded-lg text-red-300 hover:bg-red-900/30 transition">
-                        <i data-lucide="log-out" class="mr-3"></i> Cerrar Sesión
-                    </button>
-                </div>
             </nav>
+
+            <div class="p-3 border-t border-indigo-900/50 mb-4">
+                <button onclick="handleLogout()" class="nav-item w-full flex items-center p-3 rounded-xl text-red-400 hover:bg-red-950/30 transition text-left group">
+                    <i data-lucide="log-out" class="w-5 h-5 mr-3 flex-shrink-0"></i> 
+                    <span class="nav-text text-sm font-medium">Salir</span>
+                </button>
+            </div>
         </aside>
 
         <!-- Content Area -->
-        <main class="flex-1 flex flex-col overflow-hidden">
+        <main class="flex-1 flex flex-col overflow-hidden w-full">
             <!-- Header -->
-            <header class="bg-white border-b h-16 flex items-center justify-between px-8 shadow-sm">
-                <div class="flex items-center space-x-4">
-                    <h2 id="module-title" class="text-xl font-semibold text-gray-700 uppercase tracking-tight">Inventario</h2>
-                    <span id="connection-status" class="status-dot bg-connection-fail" title="Estado de Firebase"></span>
+            <header class="bg-white border-b h-16 flex items-center justify-between px-4 md:px-8 shadow-sm">
+                <div class="flex items-center space-x-3">
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 -ml-2">
+                        <i data-lucide="menu" class="w-6 h-6 text-indigo-600"></i>
+                    </button>
+                    <h2 id="module-title" class="text-lg font-bold text-gray-800 uppercase">Inventario</h2>
+                    <span id="connection-status" class="status-dot bg-connection-fail" title="Firebase"></span>
                 </div>
-                <div class="flex items-center space-x-4 text-sm">
-                    <span id="user-display" class="font-medium bg-gray-100 px-3 py-1 rounded-full"></span>
-                </div>
+                <div id="user-display" class="hidden md:block text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full uppercase tracking-tighter"></div>
             </header>
 
             <!-- Modules Container -->
-            <div id="content" class="flex-1 overflow-y-auto p-8">
+            <div id="content" class="flex-1 overflow-y-auto p-4 md:p-8">
                 
-                <!-- INVENTARIO MODULE -->
-                <section id="mod-inventario" class="space-y-8">
-                    <div class="flex space-x-4 mb-6 border-b pb-2">
-                        <button onclick="showSubmodule('inv-list')" class="px-4 py-2 font-medium text-indigo-600 border-b-2 border-indigo-600">Visualizar</button>
-                        <button id="btn-inv-add" onclick="showSubmodule('inv-add')" class="px-4 py-2 font-medium text-gray-500 hover:text-indigo-600">Ingresar</button>
-                        <button id="btn-inv-ret" onclick="showSubmodule('inv-ret')" class="px-4 py-2 font-medium text-gray-500 hover:text-indigo-600">Retirar</button>
-                        <button onclick="showSubmodule('inv-hist')" class="px-4 py-2 font-medium text-gray-500 hover:text-indigo-600">Historial</button>
+                <!-- INVENTARIO -->
+                <section id="mod-inventario" class="space-y-6 fade-in">
+                    <div class="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
+                        <button onclick="showSubmodule('inv-list')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600">Lista</button>
+                        <button id="btn-inv-add" onclick="showSubmodule('inv-add')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400 hover:text-indigo-600">Ingreso</button>
+                        <button id="btn-inv-ret" onclick="showSubmodule('inv-ret')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400 hover:text-indigo-600">Retiro</button>
+                        <button onclick="showSubmodule('inv-hist')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400 hover:text-indigo-600">Log</button>
                     </div>
 
-                    <div id="inv-list" class="submodule">
-                        <table class="w-full bg-white rounded-lg overflow-hidden shadow">
-                            <thead class="bg-gray-100 text-left">
+                    <div id="inv-list" class="submodule table-container">
+                        <table class="w-full bg-white rounded-xl shadow-sm overflow-hidden text-sm">
+                            <thead class="bg-gray-50 border-b">
                                 <tr>
-                                    <th class="p-4">Código</th>
-                                    <th class="p-4">Nombre</th>
-                                    <th class="p-4">Marca</th>
-                                    <th class="p-4">Tipo</th>
-                                    <th class="p-4">Cantidad</th>
+                                    <th class="p-4 text-left font-bold text-gray-600">Cod</th>
+                                    <th class="p-4 text-left font-bold text-gray-600">Nombre</th>
+                                    <th class="p-4 text-left font-bold text-gray-600">Stock</th>
                                 </tr>
                             </thead>
-                            <tbody id="inv-table-body"></tbody>
+                            <tbody id="inv-table-body" class="divide-y divide-gray-100"></tbody>
                         </table>
                     </div>
 
-                    <div id="inv-add" class="submodule hidden space-y-4 max-w-lg bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-lg font-bold">Ingresar Artículo</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <input type="text" id="inv-code" placeholder="Código" class="p-2 border rounded">
-                            <input type="text" id="inv-name" placeholder="Nombre" class="p-2 border rounded">
-                            <input type="text" id="inv-brand" placeholder="Marca" class="p-2 border rounded">
-                            <input type="text" id="inv-type" placeholder="Tipo" class="p-2 border rounded">
-                            <input type="number" id="inv-qty" placeholder="Cantidad" class="p-2 border rounded col-span-2">
-                            <select id="inv-dept" class="p-2 border rounded col-span-2">
+                    <div id="inv-add" class="submodule hidden space-y-4 max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                        <h3 class="text-lg font-bold text-indigo-600">Registrar Entrada</h3>
+                        <div class="grid grid-cols-1 gap-4">
+                            <input type="text" id="inv-code" placeholder="Código / Serial" class="p-3 border rounded-lg focus:ring-2 ring-indigo-500 outline-none">
+                            <input type="text" id="inv-name" placeholder="Descripción" class="p-3 border rounded-lg">
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" id="inv-brand" placeholder="Marca" class="p-3 border rounded-lg">
+                                <input type="text" id="inv-type" placeholder="Modelo/Tipo" class="p-3 border rounded-lg">
+                            </div>
+                            <input type="number" id="inv-qty" placeholder="Cantidad" class="p-3 border rounded-lg">
+                            <select id="inv-dept" class="p-3 border rounded-lg bg-gray-50">
                                 <option value="Cables">Cables</option>
-                                <option value="Ferreteria">Ferreteria</option>
-                                <option value="Energia">Energia</option>
+                                <option value="Energía">Energía</option>
                                 <option value="Redes">Redes</option>
                                 <option value="Plantas">Plantas</option>
                             </select>
-                            <button onclick="saveItem()" class="col-span-2 bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700">Guardar</button>
+                            <button onclick="saveItem()" class="bg-indigo-600 text-white p-3 rounded-lg font-bold shadow-indigo-200 shadow-lg">Guardar</button>
                         </div>
                     </div>
 
-                    <div id="inv-ret" class="submodule hidden space-y-4 max-w-lg bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-lg font-bold">Retirar Artículo</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <input type="text" id="ret-code" placeholder="Código" class="p-2 border rounded col-span-2">
-                            <input type="number" id="ret-qty" placeholder="Cantidad a retirar" class="p-2 border rounded col-span-2">
-                            <input type="text" id="ret-dest" placeholder="Destino" class="p-2 border rounded col-span-2">
-                            <input type="text" id="ret-auth" placeholder="Quién autoriza" class="p-2 border rounded col-span-2">
-                            <button onclick="withdrawItem()" class="col-span-2 bg-orange-600 text-white p-2 rounded hover:bg-orange-700">Procesar Retiro</button>
+                    <div id="inv-ret" class="submodule hidden space-y-4 max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-orange-600">Registrar Retiro</h3>
+                        <div class="space-y-4">
+                            <input type="text" id="ret-code" placeholder="Código del Artículo" class="w-full p-3 border rounded-lg">
+                            <input type="number" id="ret-qty" placeholder="Cantidad" class="w-full p-3 border rounded-lg">
+                            <input type="text" id="ret-dest" placeholder="Destino / Uso" class="w-full p-3 border rounded-lg">
+                            <input type="text" id="ret-auth" placeholder="Responsable" class="w-full p-3 border rounded-lg">
+                            <button onclick="withdrawItem()" class="w-full bg-orange-600 text-white p-3 rounded-lg font-bold shadow-lg shadow-orange-100">Procesar</button>
                         </div>
                     </div>
 
-                    <div id="inv-hist" class="submodule hidden">
-                        <table class="w-full bg-white rounded-lg overflow-hidden shadow">
-                            <thead class="bg-gray-100 text-left text-xs uppercase text-gray-600">
+                    <div id="inv-hist" class="submodule hidden table-container">
+                        <table class="w-full bg-white rounded-xl shadow-sm text-xs">
+                            <thead class="bg-gray-50 border-b">
                                 <tr>
-                                    <th class="p-4">Fecha</th>
-                                    <th class="p-4">Acción</th>
-                                    <th class="p-4">Código</th>
-                                    <th class="p-4">Cant.</th>
-                                    <th class="p-4">Extra</th>
+                                    <th class="p-3 text-left">Fecha</th>
+                                    <th class="p-3 text-left">Mov</th>
+                                    <th class="p-3 text-left">Cod</th>
+                                    <th class="p-3 text-left">Cant</th>
                                 </tr>
                             </thead>
-                            <tbody id="inv-hist-body"></tbody>
+                            <tbody id="inv-hist-body" class="divide-y divide-gray-100"></tbody>
                         </table>
                     </div>
                 </section>
 
-                <!-- PLANTAS MODULE -->
-                <section id="mod-plantas" class="hidden space-y-8">
-                    <div class="flex space-x-4 mb-6 border-b pb-2">
-                        <button onclick="showSubmodule('pl-list')" class="px-4 py-2 font-medium text-indigo-600 border-b-2 border-indigo-600">Visualizar</button>
-                        <button id="btn-pl-add" onclick="showSubmodule('pl-add')" class="px-4 py-2 font-medium text-gray-500 hover:text-indigo-600 hidden">Nueva Planta</button>
-                        <button id="btn-pl-reg" onclick="showSubmodule('pl-reg')" class="px-4 py-2 font-medium text-gray-500 hover:text-indigo-600">Registrar Uso</button>
-                        <button onclick="showSubmodule('pl-hist')" class="px-4 py-2 font-medium text-gray-500 hover:text-indigo-600">Historial</button>
+                <!-- PLANTAS -->
+                <section id="mod-plantas" class="hidden space-y-6 fade-in">
+                    <div class="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
+                        <button onclick="showSubmodule('pl-list')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600">Resumen</button>
+                        <button id="btn-pl-add" onclick="showSubmodule('pl-add')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400 hidden">Nueva</button>
+                        <button id="btn-pl-reg" onclick="showSubmodule('pl-reg')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Lectura</button>
+                        <button onclick="showSubmodule('pl-hist')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Historial</button>
                     </div>
 
                     <div id="pl-list" class="submodule space-y-4">
-                        <div class="bg-white p-4 rounded shadow flex items-center space-x-4">
-                            <label class="text-sm">Desde:</label>
-                            <input type="date" id="filter-from" class="p-1 border rounded text-sm">
-                            <label class="text-sm">Hasta:</label>
-                            <input type="date" id="filter-to" class="p-1 border rounded text-sm">
-                            <button onclick="renderPlantsList()" class="bg-indigo-100 text-indigo-700 px-3 py-1 rounded text-sm hover:bg-indigo-200">Filtrar</button>
+                        <div class="bg-white p-4 rounded-xl shadow-sm flex flex-col md:flex-row gap-3">
+                            <div class="flex items-center space-x-2 flex-1">
+                                <span class="text-xs font-bold text-gray-400">Rango:</span>
+                                <input type="date" id="filter-from" class="p-2 border rounded-lg text-sm flex-1">
+                                <input type="date" id="filter-to" class="p-2 border rounded-lg text-sm flex-1">
+                            </div>
+                            <button onclick="renderPlantsList()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm">Filtrar</button>
                         </div>
-                        <table class="w-full bg-white rounded-lg overflow-hidden shadow">
-                            <thead class="bg-gray-100 text-left">
+                        <div class="table-container">
+                            <table class="w-full bg-white rounded-xl shadow-sm text-sm">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="p-4 text-left">Planta</th>
+                                        <th class="p-4 text-left">Gasoil (L)</th>
+                                        <th class="p-4 text-left">Horas</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pl-table-body" class="divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="pl-add" class="submodule hidden space-y-4 max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold">Añadir Planta</h3>
+                        <input type="text" id="pl-name-new" placeholder="Identificador de la planta" class="w-full p-3 border rounded-lg">
+                        <button onclick="createNewPlant()" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-bold">Crear</button>
+                    </div>
+
+                    <div id="pl-reg" class="submodule hidden space-y-4 max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold">Registro de Consumo</h3>
+                        <select id="pl-select-reg" class="w-full p-3 border rounded-lg bg-gray-50"></select>
+                        <input type="number" id="pl-gas" placeholder="Gasoil Surtido (L)" class="w-full p-3 border rounded-lg">
+                        <input type="number" id="pl-hrs" placeholder="Horas de Operación" class="w-full p-3 border rounded-lg">
+                        <button onclick="savePlantLog()" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-bold">Guardar Lectura</button>
+                    </div>
+
+                    <div id="pl-hist" class="submodule hidden table-container">
+                        <table class="w-full bg-white rounded-xl shadow-sm text-xs">
+                            <thead class="bg-gray-50 border-b">
                                 <tr>
-                                    <th class="p-4">Nombre Planta</th>
-                                    <th class="p-4">Gasoil Surtido (L)</th>
-                                    <th class="p-4">Horas Encendido</th>
+                                    <th class="p-3 text-left">Fecha</th>
+                                    <th class="p-3 text-left">Planta</th>
+                                    <th class="p-3 text-left">Lts</th>
+                                    <th class="p-3 text-left">Hrs</th>
                                 </tr>
                             </thead>
-                            <tbody id="pl-table-body"></tbody>
-                        </table>
-                    </div>
-
-                    <div id="pl-add" class="submodule hidden space-y-4 max-w-lg bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-lg font-bold">Agregar Nueva Planta</h3>
-                        <input type="text" id="pl-name-new" placeholder="Nombre de la planta" class="w-full p-2 border rounded">
-                        <button onclick="createNewPlant()" class="w-full bg-indigo-600 text-white p-2 rounded">Crear</button>
-                    </div>
-
-                    <div id="pl-reg" class="submodule hidden space-y-4 max-w-lg bg-white p-6 rounded-lg shadow">
-                        <h3 class="text-lg font-bold">Ingreso Manual de Datos</h3>
-                        <select id="pl-select-reg" class="w-full p-2 border rounded"></select>
-                        <input type="number" id="pl-gas" placeholder="Gasoil Surtido (L)" class="w-full p-2 border rounded">
-                        <input type="number" id="pl-hrs" placeholder="Horas de Encendido" class="w-full p-2 border rounded">
-                        <button onclick="savePlantLog()" class="w-full bg-indigo-600 text-white p-2 rounded">Registrar</button>
-                    </div>
-
-                    <div id="pl-hist" class="submodule hidden">
-                        <table class="w-full bg-white rounded-lg overflow-hidden shadow">
-                            <thead class="bg-gray-100 text-left">
-                                <tr>
-                                    <th class="p-4">Fecha</th>
-                                    <th class="p-4">Planta</th>
-                                    <th class="p-4">Gasoil</th>
-                                    <th class="p-4">Horas</th>
-                                    <th class="p-4">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pl-hist-body"></tbody>
+                            <tbody id="pl-hist-body" class="divide-y divide-gray-100"></tbody>
                         </table>
                     </div>
                 </section>
 
-                <!-- USUARIOS MODULE -->
-                <section id="mod-usuarios" class="hidden space-y-8">
-                    <div class="max-w-xl bg-white p-6 rounded-lg shadow space-y-4">
-                        <h3 class="text-xl font-bold border-b pb-2">Crear Nuevo Usuario</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <input type="text" id="user-fullname" placeholder="Nombre Completo" class="p-2 border rounded col-span-2">
-                            <input type="text" id="user-name" placeholder="Nombre de Usuario" class="p-2 border rounded">
-                            <input type="password" id="user-pass" placeholder="Contraseña" class="p-2 border rounded">
-                            <select id="user-level" class="p-2 border rounded col-span-2">
+                <!-- USUARIOS -->
+                <section id="mod-usuarios" class="hidden space-y-6 fade-in">
+                    <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-lg space-y-4 border border-green-50">
+                        <h3 class="text-lg font-bold border-b pb-2 text-green-700 uppercase tracking-tighter">Nuevo Acceso</h3>
+                        <div class="grid grid-cols-1 gap-4">
+                            <input type="text" id="user-fullname" placeholder="Nombre Completo" class="p-3 border rounded-lg">
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" id="user-name" placeholder="Usuario" class="p-3 border rounded-lg">
+                                <input type="password" id="user-pass" placeholder="Password" class="p-3 border rounded-lg">
+                            </div>
+                            <select id="user-level" class="p-3 border rounded-lg bg-gray-50">
                                 <option value="OBSERVADOR">OBSERVADOR</option>
                                 <option value="MONITOREO">MONITOREO</option>
                                 <option value="ADMINISTRADOR">ADMINISTRADOR</option>
                             </select>
-                            <button onclick="createUser()" class="col-span-2 bg-green-600 text-white p-2 rounded hover:bg-green-700">Crear Usuario</button>
+                            <button onclick="createUser()" class="bg-green-600 text-white p-3 rounded-lg font-bold shadow-green-100 shadow-lg">Crear Cuenta</button>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-lg shadow overflow-hidden">
-                        <h3 class="p-4 font-bold bg-gray-50 border-b">Usuarios Registrados</h3>
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-100">
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="p-4">Nombre</th>
-                                    <th class="p-4">Usuario</th>
+                                    <th class="p-4">User</th>
                                     <th class="p-4">Nivel</th>
-                                    <th class="p-4">Acción</th>
+                                    <th class="p-4"></th>
                                 </tr>
                             </thead>
-                            <tbody id="users-table-body"></tbody>
+                            <tbody id="users-table-body" class="divide-y"></tbody>
                         </table>
                     </div>
                 </section>
@@ -256,26 +309,17 @@
         </main>
     </div>
 
-    <!-- Firebase SDKs -->
+    <!-- Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
-        // CONFIGURACIÓN Y ESTADO GLOBAL
-        const firebaseConfig = {
-    apiKey: "AIzaSyBkN6mE0YqWeAToslbgOAta80gjYi_C4Xk",
-    authDomain: "gerencia-de-energia.firebaseapp.com",
-    projectId: "gerencia-de-energia",
-    storageBucket: "gerencia-de-energia.firebasestorage.app",
-    messagingSenderId: "347966041919",
-    appId: "1:347966041919:web:40cfe12b6dbba953712d8a",
-    measurementId: "G-YMWMWKQYDL"
-  };
+        const firebaseConfig = JSON.parse(window.__firebase_config || '{}');
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const appId = window.__app_id || 'gerencia-app';
+        const appId = window.__app_id || 'gerencia-v1';
 
         let currentUser = null;
         let localUsers = []; 
@@ -284,7 +328,35 @@
         const getPublicPath = (col) => collection(db, 'artifacts', appId, 'public', 'data', col);
         const getUsersPath = () => collection(db, 'artifacts', appId, 'public', 'data', 'app_users');
 
-        // EXPOSICIÓN GLOBAL DE FUNCIONES
+        // Navegación Global
+        window.navigate = (modId) => {
+            ['inventario', 'plantas', 'usuarios'].forEach(s => {
+                document.getElementById(`mod-${s}`).classList.add('hidden');
+            });
+            document.getElementById(`mod-${modId}`).classList.remove('hidden');
+            document.getElementById('module-title').innerText = modId;
+            if (window.innerWidth < 768) toggleSidebar(); // Auto-cerrar en móvil
+        };
+
+        window.toggleSidebar = () => {
+            const sb = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const icon = document.getElementById('toggle-icon-desktop');
+
+            if (window.innerWidth < 768) {
+                sb.classList.toggle('mobile-open');
+                overlay.classList.toggle('active');
+            } else {
+                sb.classList.toggle('sidebar-collapsed');
+                // Girar icono de flecha
+                if (sb.classList.contains('sidebar-collapsed')) {
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            }
+        };
+
         window.handleLogin = () => {
             const userIn = document.getElementById('login-user').value;
             const passIn = document.getElementById('login-pass').value;
@@ -294,180 +366,149 @@
                 currentUser = found;
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('main-app').classList.remove('hidden');
-                document.getElementById('user-display').innerText = `${found.fullname} (${found.level})`;
+                document.getElementById('user-display').innerText = `${found.fullname} | ${found.level}`;
                 applyPermissions(found.level);
             } else {
-                document.getElementById('login-error').classList.remove('hidden');
+                const err = document.getElementById('login-error');
+                err.classList.remove('hidden');
+                setTimeout(() => err.classList.add('hidden'), 3000);
             }
         };
 
-        window.handleLogout = () => location.reload();
-
-        window.showModule = (modId) => {
-            const sections = ['inventario', 'plantas', 'usuarios'];
-            sections.forEach(s => document.getElementById(`mod-${s}`).classList.add('hidden'));
-            document.getElementById(`mod-${modId}`).classList.remove('hidden');
-            document.getElementById('module-title').innerText = modId;
+        window.handleLogout = () => {
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('logout-screen').classList.remove('hidden');
+            setTimeout(() => location.reload(), 2500);
         };
 
         window.showSubmodule = (subId) => {
-            const parent = document.getElementById(subId).parentElement;
-            parent.querySelectorAll('.submodule').forEach(s => s.classList.add('hidden'));
+            const container = document.getElementById(subId).parentElement;
+            container.querySelectorAll('.submodule').forEach(s => s.classList.add('hidden'));
             document.getElementById(subId).classList.remove('hidden');
+            
+            // Estilo botones tabs
+            const tabs = container.querySelector('.flex.space-x-2');
+            tabs.querySelectorAll('button').forEach(b => {
+                b.classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600');
+                b.classList.add('text-gray-400');
+            });
+            event.target.classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600');
+            event.target.classList.remove('text-gray-400');
         };
 
-        window.toggleSidebar = () => {
-            const sb = document.getElementById('sidebar');
-            sb.classList.toggle('w-0');
-            sb.classList.toggle('overflow-hidden');
-        };
-
-        window.createUser = async () => {
-            if (!authenticatedUser) return;
-            const fullname = document.getElementById('user-fullname').value;
-            const username = document.getElementById('user-name').value;
-            const pass = document.getElementById('user-pass').value;
-            const level = document.getElementById('user-level').value;
-            if (!fullname || !username || !pass) return;
-            await addDoc(getUsersPath(), { fullname, username, pass, level });
-            document.getElementById('user-fullname').value = "";
-            document.getElementById('user-name').value = "";
-            document.getElementById('user-pass').value = "";
-        };
-
-        window.deleteUser = async (id) => {
-            if (!authenticatedUser) return;
-            if (confirm('¿Eliminar este usuario?')) await deleteDoc(doc(getUsersPath(), id));
-        };
-
+        // Inventario Logic
         window.saveItem = async () => {
             if (!authenticatedUser) return;
+            const btn = event.target;
+            btn.disabled = true;
             const data = {
-                code: document.getElementById('inv-code').value,
-                name: document.getElementById('inv-name').value,
-                brand: document.getElementById('inv-brand').value,
-                type: document.getElementById('inv-type').value,
+                code: document.getElementById('inv-code').value.trim(),
+                name: document.getElementById('inv-name').value.trim(),
+                brand: document.getElementById('inv-brand').value.trim(),
+                type: document.getElementById('inv-type').value.trim(),
                 qty: parseInt(document.getElementById('inv-qty').value),
                 dept: document.getElementById('inv-dept').value
             };
-            if (!data.code || isNaN(data.qty)) return;
-            await setDoc(doc(getPublicPath('inventario'), data.code), data);
-            await addDoc(getPublicPath('inv_history'), {
-                timestamp: Date.now(),
-                action: 'INGRESO',
-                code: data.code,
-                qty: data.qty,
-                extra: `Depto: ${data.dept}`
-            });
-            alert('Ingresado con éxito');
+            if (!data.code || isNaN(data.qty)) return (btn.disabled = false);
+            
+            try {
+                await setDoc(doc(getPublicPath('inventario'), data.code), data);
+                await addDoc(getPublicPath('inv_history'), {
+                    timestamp: Date.now(), action: 'INGRESO', code: data.code, qty: data.qty, extra: `Depto: ${data.dept}`
+                });
+                alert('Guardado exitosamente');
+                document.querySelectorAll('#inv-add input').forEach(i => i.value = '');
+            } catch (e) { console.error(e); }
+            btn.disabled = false;
         };
 
         window.withdrawItem = async () => {
             if (!authenticatedUser) return;
-            const code = document.getElementById('ret-code').value;
+            const code = document.getElementById('ret-code').value.trim();
             const qty = parseInt(document.getElementById('ret-qty').value);
-            const dest = document.getElementById('ret-dest').value;
-            const authBy = document.getElementById('ret-auth').value;
+            const dest = document.getElementById('ret-dest').value.trim();
+            const authBy = document.getElementById('ret-auth').value.trim();
+            
             const docRef = doc(getPublicPath('inventario'), code);
             const snap = await getDoc(docRef);
+            
             if (snap.exists()) {
                 const currentQty = snap.data().qty;
                 if (currentQty >= qty) {
                     await updateDoc(docRef, { qty: currentQty - qty });
                     await addDoc(getPublicPath('inv_history'), {
-                        timestamp: Date.now(),
-                        action: 'RETIRO',
-                        code: code,
-                        qty: qty,
-                        extra: `Destino: ${dest} | Autoriza: ${authBy}`
+                        timestamp: Date.now(), action: 'RETIRO', code: code, qty: qty, extra: `Destino: ${dest}`
                     });
                     alert('Retiro exitoso');
-                } else alert('Cantidad insuficiente');
-            } else alert('Artículo no encontrado');
+                    document.querySelectorAll('#inv-ret input').forEach(i => i.value = '');
+                } else alert('Error: Stock insuficiente ('+currentQty+')');
+            } else alert('Error: Código no existe');
         };
 
+        // Plantas Logic
         window.createNewPlant = async () => {
-            if (!authenticatedUser) return;
-            const name = document.getElementById('pl-name-new').value;
+            const name = document.getElementById('pl-name-new').value.trim();
             if (!name) return;
             await setDoc(doc(getPublicPath('plantas'), name), { name });
-            document.getElementById('pl-name-new').value = "";
-            alert('Planta creada');
+            document.getElementById('pl-name-new').value = '';
+            alert('Planta registrada');
         };
 
         window.savePlantLog = async () => {
-            if (!authenticatedUser) return;
             const name = document.getElementById('pl-select-reg').value;
-            const gas = parseFloat(document.getElementById('pl-gas').value);
-            const hrs = parseFloat(document.getElementById('pl-hrs').value);
+            const gas = parseFloat(document.getElementById('pl-gas').value) || 0;
+            const hrs = parseFloat(document.getElementById('pl-hrs').value) || 0;
             if (!name) return;
             await addDoc(getPublicPath('plantas_logs'), {
-                plantName: name, gas: gas || 0, hrs: hrs || 0,
-                timestamp: Date.now(), dateStr: new Date().toISOString().split('T')[0]
+                plantName: name, gas, hrs, timestamp: Date.now(), dateStr: new Date().toISOString().split('T')[0]
             });
-            alert('Registro guardado');
-        };
-
-        window.deletePlantLog = async (id) => {
-            if (!authenticatedUser) return;
-            if (currentUser?.level === 'ADMINISTRADOR' && confirm('¿Eliminar este registro?')) {
-                await deleteDoc(doc(getPublicPath('plantas_logs'), id));
-            }
+            alert('Lectura guardada');
+            document.getElementById('pl-gas').value = '';
+            document.getElementById('pl-hrs').value = '';
         };
 
         window.renderPlantsList = async () => {
-            if (!authenticatedUser) return;
-            const plantasSnap = await getDocs(getPublicPath('plantas'));
-            const plantas = plantasSnap.docs.map(d => d.data());
-            const logsSnap = await getDocs(getPublicPath('plantas_logs'));
-            const allLogs = logsSnap.docs.map(d => d.data());
-            
             const from = document.getElementById('filter-from').value;
             const to = document.getElementById('filter-to').value;
-            const body = document.getElementById('pl-table-body');
             
-            body.innerHTML = plantas.map(p => {
-                const filteredLogs = allLogs.filter(l => {
-                    const matchPlant = l.plantName === p.name;
-                    const matchFrom = from ? l.dateStr >= from : true;
-                    const matchTo = to ? l.dateStr <= to : true;
-                    return matchPlant && matchFrom && matchTo;
+            const pSnap = await getDocs(getPublicPath('plantas'));
+            const lSnap = await getDocs(getPublicPath('plantas_logs'));
+            const logs = lSnap.docs.map(d => d.data());
+            
+            const body = document.getElementById('pl-table-body');
+            body.innerHTML = pSnap.docs.map(doc => {
+                const p = doc.data();
+                const pLogs = logs.filter(l => {
+                    const matchName = l.plantName === p.name;
+                    const matchF = from ? l.dateStr >= from : true;
+                    const matchT = to ? l.dateStr <= to : true;
+                    return matchName && matchF && matchT;
                 });
-                const totalGas = filteredLogs.reduce((acc, curr) => acc + curr.gas, 0);
-                const totalHrs = filteredLogs.reduce((acc, curr) => acc + curr.hrs, 0);
-                return `<tr class="border-b"><td class="p-4 font-bold">${p.name}</td><td class="p-4 text-green-700 font-bold">${totalGas} L</td><td class="p-4 text-orange-700 font-bold">${totalHrs} Hrs</td></tr>`;
+                const totalGas = pLogs.reduce((acc, curr) => acc + curr.gas, 0);
+                const totalHrs = pLogs.reduce((acc, curr) => acc + curr.hrs, 0);
+                return `<tr class="border-b">
+                    <td class="p-4 font-bold text-gray-700">${p.name}</td>
+                    <td class="p-4 text-green-600 font-bold">${totalGas}</td>
+                    <td class="p-4 text-indigo-600 font-bold">${totalHrs}</td>
+                </tr>`;
             }).join('');
         };
 
-        // RENDER HELPERS
-        function renderUsers() {
-            const body = document.getElementById('users-table-body');
-            body.innerHTML = localUsers.map(u => `
-                <tr class="border-b">
-                    <td class="p-4">${u.fullname}</td>
-                    <td class="p-4 font-mono">${u.username}</td>
-                    <td class="p-4 text-xs font-bold">${u.level}</td>
-                    <td class="p-4 text-red-500 cursor-pointer" onclick="deleteUser('${u.id}')">${u.username !== 'Admin' ? 'Eliminar' : ''}</td>
-                </tr>
-            `).join('');
-        }
+        // Users Logic
+        window.createUser = async () => {
+            const fn = document.getElementById('user-fullname').value;
+            const un = document.getElementById('user-name').value;
+            const ps = document.getElementById('user-pass').value;
+            const lv = document.getElementById('user-level').value;
+            if (!fn || !un || !ps) return;
+            await addDoc(getUsersPath(), { fullname: fn, username: un, pass: ps, level: lv });
+            alert('Usuario creado');
+            document.querySelectorAll('#mod-usuarios input').forEach(i => i.value = '');
+        };
 
-        function renderInventory(items) {
-            const body = document.getElementById('inv-table-body');
-            body.innerHTML = items.map(i => `<tr class="border-b hover:bg-gray-50"><td class="p-4 font-bold text-indigo-600">${i.code}</td><td class="p-4">${i.name}</td><td class="p-4">${i.brand}</td><td class="p-4">${i.type}</td><td class="p-4"><span class="bg-indigo-100 px-2 py-1 rounded text-indigo-800 font-bold">${i.qty}</span></td></tr>`).join('');
-        }
-
-        function renderInventoryHistory(hist) {
-            const body = document.getElementById('inv-hist-body');
-            hist.sort((a,b) => b.timestamp - a.timestamp);
-            body.innerHTML = hist.map(h => `<tr class="border-b text-sm"><td class="p-4">${new Date(h.timestamp).toLocaleString()}</td><td class="p-4 font-bold ${h.action === 'INGRESO' ? 'text-green-600' : 'text-orange-600'}">${h.action}</td><td class="p-4">${h.code}</td><td class="p-4">${h.qty}</td><td class="p-4 text-xs italic">${h.extra}</td></tr>`).join('');
-        }
-
-        function renderPlantHistory(logs) {
-            const body = document.getElementById('pl-hist-body');
-            logs.sort((a,b) => b.timestamp - a.timestamp);
-            body.innerHTML = logs.map(l => `<tr class="border-b text-sm"><td class="p-4">${l.dateStr}</td><td class="p-4 font-bold">${l.plantName}</td><td class="p-4">${l.gas} L</td><td class="p-4">${l.hrs} Hrs</td><td class="p-4">${currentUser?.level === 'ADMINISTRADOR' ? `<button onclick="deletePlantLog('${l.id}')" class="text-red-500">Eliminar</button>` : ''}</td></tr>`).join('');
-        }
+        window.deleteUser = async (id) => {
+            if (confirm('¿Eliminar usuario?')) await deleteDoc(doc(getUsersPath(), id));
+        };
 
         function applyPermissions(level) {
             if (level === 'ADMINISTRADOR') {
@@ -481,64 +522,86 @@
             }
         }
 
-        // FUNCIÓN PARA INICIAR LISTENERS (SOLO TRAS AUTH)
-        function startFirestoreListeners(user) {
+        // Listeners
+        function startSync(user) {
             authenticatedUser = user;
             document.getElementById('connection-status').classList.replace('bg-connection-fail', 'bg-connection-ok');
 
-            onSnapshot(getUsersPath(), (snapshot) => {
-                localUsers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Usuarios Sync
+            onSnapshot(getUsersPath(), (snap) => {
+                localUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 if (!localUsers.find(u => u.username === 'Admin')) {
-                    setDoc(doc(getUsersPath(), 'admin_default'), {
-                        fullname: 'Administrador Sistema', username: 'Admin', pass: 'admin1', level: 'ADMINISTRADOR'
-                    });
+                    setDoc(doc(getUsersPath(), 'adm_root'), { fullname: 'Master Root', username: 'Admin', pass: 'admin1', level: 'ADMINISTRADOR' });
                 }
-                renderUsers();
-            }, (err) => {
-                console.error("Users sync error", err);
-                document.getElementById('connection-status').classList.replace('bg-connection-ok', 'bg-connection-fail');
+                const body = document.getElementById('users-table-body');
+                body.innerHTML = localUsers.map(u => `<tr>
+                    <td class="p-4 text-xs font-bold">${u.username}</td>
+                    <td class="p-4 text-xs">${u.level}</td>
+                    <td class="p-4 text-right">${u.username !== 'Admin' ? `<button onclick="deleteUser('${u.id}')" class="text-red-500">Eliminar</button>` : ''}</td>
+                </tr>`).join('');
             });
 
-            onSnapshot(getPublicPath('inventario'), (snap) => renderInventory(snap.docs.map(d => d.data())), (err) => console.error("Inventory sync error", err));
-            onSnapshot(getPublicPath('inv_history'), (snap) => renderInventoryHistory(snap.docs.map(d => d.data())), (err) => console.error("History sync error", err));
+            // Inventario Sync
+            onSnapshot(getPublicPath('inventario'), (snap) => {
+                const body = document.getElementById('inv-table-body');
+                body.innerHTML = snap.docs.map(d => {
+                    const i = d.data();
+                    return `<tr class="hover:bg-indigo-50/30 transition">
+                        <td class="p-4 font-mono font-bold text-indigo-700">${i.code}</td>
+                        <td class="p-4">
+                            <div class="font-bold text-gray-800">${i.name}</div>
+                            <div class="text-[10px] text-gray-400 uppercase">${i.brand} | ${i.type}</div>
+                        </td>
+                        <td class="p-4"><span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold">${i.qty}</span></td>
+                    </tr>`;
+                }).join('');
+            });
+
+            // Historial Sync
+            onSnapshot(getPublicPath('inv_history'), (snap) => {
+                const body = document.getElementById('inv-hist-body');
+                const list = snap.docs.map(d => d.data()).sort((a,b) => b.timestamp - a.timestamp);
+                body.innerHTML = list.slice(0, 30).map(h => `<tr>
+                    <td class="p-3 text-[10px]">${new Date(h.timestamp).toLocaleDateString()}</td>
+                    <td class="p-3 font-bold ${h.action === 'INGRESO' ? 'text-green-600' : 'text-orange-600'}">${h.action[0]}</td>
+                    <td class="p-3">${h.code}</td>
+                    <td class="p-3 font-bold">${h.qty}</td>
+                </tr>`).join('');
+            });
+
+            // Plantas Sync
             onSnapshot(getPublicPath('plantas'), (snap) => {
                 const plantas = snap.docs.map(d => d.data());
-                window.renderPlantsList(); 
                 document.getElementById('pl-select-reg').innerHTML = plantas.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-            }, (err) => console.error("Plants sync error", err));
-            onSnapshot(getPublicPath('plantas_logs'), (snap) => renderPlantHistory(snap.docs.map(d => ({id: d.id, ...d.data()}))), (err) => console.error("Logs sync error", err));
-        }
-
-        // INICIALIZACIÓN
-        window.addEventListener('load', async () => {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-
-            // Escuchamos el estado de autenticación
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    startFirestoreListeners(user);
-                }
+                renderPlantsList();
             });
 
-            // Proceso de autenticación inicial (Obligatorio antes de consultas)
+            onSnapshot(getPublicPath('plantas_logs'), (snap) => {
+                const body = document.getElementById('pl-hist-body');
+                const list = snap.docs.map(d => d.data()).sort((a,b) => b.timestamp - a.timestamp);
+                body.innerHTML = list.slice(0, 20).map(l => `<tr>
+                    <td class="p-3">${l.dateStr}</td>
+                    <td class="p-3 font-bold text-indigo-800">${l.plantName}</td>
+                    <td class="p-3">${l.gas}</td>
+                    <td class="p-3 font-mono">${l.hrs}</td>
+                </tr>`).join('');
+            });
+        }
+
+        // Init
+        window.addEventListener('load', async () => {
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            
+            onAuthStateChanged(auth, (user) => { if (user) startSync(user); });
+
             try {
                 if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) {
                     await signInWithCustomToken(auth, window.__initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
-            } catch (err) { 
-                console.error("Firebase Auth failed", err); 
-                document.getElementById('connection-status').classList.replace('bg-connection-ok', 'bg-connection-fail');
-            }
+            } catch (err) { console.error("Auth fail", err); }
         });
-
     </script>
 </body>
 </html>
-
-
-
-
