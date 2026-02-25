@@ -94,9 +94,9 @@
     <div id="main-app" class="hidden flex h-screen overflow-hidden">
         
         <!-- Sidebar -->
-        <aside id="sidebar" class="bg-indigo-950 text-white w-64 flex-shrink-0 sidebar-transition flex flex-col border-r border-indigo-800 shadow-xl">
+        <aside id="sidebar" class="bg-indigo-950 text-white w-25 flex-shrink-0 sidebar-transition flex flex-col border-r border-indigo-800 shadow-xl">
             <div class="p-5 flex items-center justify-between">
-                <span class="text-lg font-bold tracking-tighter logo-text overflow-hidden whitespace-nowrap">SISTEMA</span>
+                <span class="text-lg font-bold tracking-tighter logo-text overflow-hidden whitespace-nowrap">MENÚ</span>
                 <button onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-indigo-800 active:bg-indigo-700 transition">
                     <i data-lucide="chevron-left" id="toggle-icon-desktop" class="w-5 h-5 hidden md:block"></i>
                     <i data-lucide="x" class="w-6 h-6 md:hidden"></i>
@@ -149,7 +149,7 @@
                         <button onclick="showSubmodule('inv-list')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600">Lista</button>
                         <button id="btn-inv-add" onclick="showSubmodule('inv-add')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400 hover:text-indigo-600">Ingreso</button>
                         <button id="btn-inv-ret" onclick="showSubmodule('inv-ret')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400 hover:text-indigo-600">Retiro</button>
-                        <button onclick="showSubmodule('inv-hist')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400 hover:text-indigo-600">Log</button>
+                        <button onclick="showSubmodule('inv-hist')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400 hover:text-indigo-600">Historial</button>
                     </div>
 
                     <div id="inv-list" class="submodule table-container">
@@ -613,5 +613,6 @@
     </script>
 </body>
 </html>
+
 
 
