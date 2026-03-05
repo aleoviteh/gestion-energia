@@ -852,6 +852,7 @@
                         <td class="p-3 text-[10px]">${new Date(h.timestamp).toLocaleDateString()}</td>
                         <td class="p-3 font-bold ${h.action === 'INGRESO' ? 'text-green-600' : h.action === 'RETIRO' ? 'text-orange-600' : h.action === 'EDICIÓN' ? 'text-blue-600' : 'text-gray-600'}">${h.action[0]}</td>
                         <td class="p-3">${h.code}</td>
+                        <td class="p-3">${h.name}</td>
                         <td class="p-3 font-bold">${h.qty}</td>
                     </tr>`).join('');
                 }
@@ -897,3 +898,4 @@
     </script>
 </body>
 </html>
+
