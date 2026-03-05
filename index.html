@@ -228,7 +228,6 @@
                         <button onclick="showSubmodule('pl-hist')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Historial</button>
                     </div>
 
-                    <!-- Estado actual de las plantas (NUEVO) -->
                     <div id="pl-status" class="submodule table-container">
                         <table class="w-full bg-white rounded-xl shadow-sm text-sm">
                             <thead class="bg-gray-50 border-b">
@@ -243,7 +242,6 @@
                         </table>
                     </div>
 
-                    <!-- Modal Edición Tanque (NUEVO) -->
                     <div id="modal-edit-tanque" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
                         <div class="bg-white p-6 rounded-xl w-full max-w-sm shadow-2xl">
                             <h3 id="edit-tanque-title" class="text-lg font-bold text-indigo-600 mb-4">Editar Planta</h3>
@@ -373,9 +371,9 @@ const firebaseConfig = {
         const auth = getAuth(app);
         const appId = window.__app_id || 'gerencia-v1';
 
-        let currentUser = null;
+        let currentUser = null; // Usuario logueado en la app localmente
         let localUsers = []; 
-        let authenticatedUser = null;
+        let authenticatedUser = null; // Usuario de Firebase Auth
         let currentEditPlantId = null;
         
         const getPublicPath = (col) => collection(db, 'artifacts', appId, 'public', 'data', col);
@@ -423,6 +421,8 @@ const firebaseConfig = {
                 document.getElementById('main-app').classList.remove('hidden');
                 document.getElementById('user-display').innerText = `${found.fullname} | ${found.level}`;
                 applyPermissions(found.level);
+                // Forzar re-render de plantas para actualizar iconos de edición con el nuevo nivel
+                renderPlantsTable();
             } else {
                 const err = document.getElementById('login-error');
                 err.classList.remove('hidden');
@@ -512,9 +512,13 @@ const firebaseConfig = {
             alert('Planta registrada');
         };
 
-        // NUEVAS FUNCIONES MONITOREO PLANTAS
+        // CORRECCIÓN PERMISOS EDICIÓN TANQUE
         window.openEditTanque = (id, currentT, currentR) => {
-            if (!currentUser || (currentUser.level !== 'ADMINISTRADOR' && currentUser.level !== 'MONITOREO')) return;
+            // Verificación redundante de seguridad local
+            if (!currentUser || (currentUser.level !== 'ADMINISTRADOR' && currentUser.level !== 'MONITOREO')) {
+                alert('No tiene permisos para editar estos valores.');
+                return;
+            }
             currentEditPlantId = id;
             document.getElementById('edit-tanque-title').innerText = `Editar Planta: ${id}`;
             document.getElementById('edit-tanque-val').value = currentT || 0;
@@ -530,12 +534,16 @@ const firebaseConfig = {
             const t = parseFloat(document.getElementById('edit-tanque-val').value) || 0;
             const r = parseFloat(document.getElementById('edit-reserva-val').value) || 0;
             if (currentEditPlantId) {
-                await updateDoc(doc(getPublicPath('plantas'), currentEditPlantId), {
-                    tanque: t,
-                    reserva: r
-                });
-                alert('Datos actualizados');
-                closeEditTanque();
+                try {
+                    await updateDoc(doc(getPublicPath('plantas'), currentEditPlantId), {
+                        tanque: t,
+                        reserva: r
+                    });
+                    alert('Datos actualizados');
+                    closeEditTanque();
+                } catch(e) {
+                    alert('Error al actualizar datos en servidor.');
+                }
             }
         };
 
@@ -550,6 +558,36 @@ const firebaseConfig = {
             alert('Lectura guardada');
             document.getElementById('pl-gas').value = '';
             document.getElementById('pl-hrs').value = '';
+        };
+
+        let cachedPlantas = [];
+        window.renderPlantsTable = () => {
+            const statusBody = document.getElementById('pl-status-body');
+            statusBody.innerHTML = cachedPlantas.map(p => {
+                // Validación del nivel de usuario cargado en la sesión local
+                const canEdit = currentUser && (currentUser.level === 'ADMINISTRADOR' || currentUser.level === 'MONITOREO');
+                return `<tr>
+                    <td class="p-4 font-bold text-indigo-900">${p.name}</td>
+                    <td class="p-4">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-mono font-bold border border-blue-100">${p.tanque || 0} L</span>
+                        </div>
+                    </td>
+                    <td class="p-4">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-orange-50 text-orange-700 px-3 py-1 rounded-lg font-mono font-bold border border-orange-100">${p.reserva || 0} L</span>
+                        </div>
+                    </td>
+                    <td class="p-4 text-center">
+                        ${canEdit ? `
+                            <button onclick="openEditTanque('${p.name}', ${p.tanque}, ${p.reserva})" class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-full transition">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                        ` : '<span class="text-gray-400 text-[10px] italic">Solo lectura</span>'}
+                    </td>
+                </tr>`;
+            }).join('');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         };
 
         window.renderPlantsList = async () => {
@@ -656,38 +694,15 @@ const firebaseConfig = {
 
             // Plantas Sync
             onSnapshot(getPublicPath('plantas'), (snap) => {
-                const plantas = snap.docs.map(d => d.data());
+                cachedPlantas = snap.docs.map(d => d.data());
                 
                 // Actualizar dropdown de lectura
-                document.getElementById('pl-select-reg').innerHTML = plantas.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+                document.getElementById('pl-select-reg').innerHTML = cachedPlantas.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
                 
-                // Actualizar tabla de estado (Tanques y Reserva)
-                const statusBody = document.getElementById('pl-status-body');
-                statusBody.innerHTML = plantas.map(p => {
-                    const canEdit = currentUser && (currentUser.level === 'ADMINISTRADOR' || currentUser.level === 'MONITOREO');
-                    return `<tr>
-                        <td class="p-4 font-bold text-indigo-900">${p.name}</td>
-                        <td class="p-4">
-                            <div class="flex items-center gap-2">
-                                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-mono font-bold border border-blue-100">${p.tanque || 0} L</span>
-                            </div>
-                        </td>
-                        <td class="p-4">
-                            <div class="flex items-center gap-2">
-                                <span class="bg-orange-50 text-orange-700 px-3 py-1 rounded-lg font-mono font-bold border border-orange-100">${p.reserva || 0} L</span>
-                            </div>
-                        </td>
-                        <td class="p-4 text-center">
-                            ${canEdit ? `
-                                <button onclick="openEditTanque('${p.name}', ${p.tanque}, ${p.reserva})" class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-full transition">
-                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
-                                </button>
-                            `}
-                        </td>
-                    </tr>`;
-                }).join('');
-                if (typeof lucide !== 'undefined') lucide.createIcons();
+                // Renderizar tabla de estado
+                renderPlantsTable();
                 
+                // Renderizar lista de consumos
                 renderPlantsList();
             });
 
@@ -720,4 +735,3 @@ const firebaseConfig = {
     </script>
 </body>
 </html>
-
