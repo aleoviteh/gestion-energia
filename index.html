@@ -258,7 +258,7 @@
                         <div class="space-y-4">
                             <input type="text" id="ret-code" placeholder="Código del Artículo" class="w-full p-3 border rounded-lg">
                             <input type="number" id="ret-qty" placeholder="Cantidad" class="w-full p-3 border rounded-lg">
-                            <input type="text" id="ret-dest" placeholder="Destino / Uso" class="w-full p-3 border rounded-lg">
+                            <input type="text" id="ret-dest" placeholder="Destino" class="w-full p-3 border rounded-lg">
                             <input type="text" id="ret-auth" placeholder="Responsable" class="w-full p-3 border rounded-lg">
                             <button onclick="withdrawItem()" class="w-full bg-orange-600 text-white p-3 rounded-lg font-bold">Procesar</button>
                         </div>
@@ -273,6 +273,7 @@
                                     <th class="p-3 text-left">Cod</th>
                                     <th class="p-3 text-left">Nombre</th>
                                     <th class="p-3 text-left">Cant</th>
+                                    <th class="p-3 text-left">Destino</th>
                                 </tr>
                             </thead>
                             <tbody id="inv-hist-body" class="divide-y divide-gray-100"></tbody>
@@ -901,6 +902,7 @@
     </script>
 </body>
 </html>
+
 
 
 
