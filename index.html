@@ -74,7 +74,14 @@
     <!-- Login Overlay -->
     <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 px-4">
         <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-sm">
-            <h1 class="text-2xl font-bold text-center mb-6 text-indigo-600">GERENCIA ENERGÍA</h1>
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-indigo-600">GERENCIA ENERGÍA</h1>
+                <div class="mt-4 flex justify-center">
+                    <div class="bg-indigo-100 p-3 rounded-full text-indigo-600">
+                        <i data-lucide="zap" class="w-8 h-8 fill-current"></i>
+                    </div>
+                </div>
+            </div>
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold uppercase text-gray-500">Usuario</label>
@@ -147,9 +154,9 @@
                 <section id="mod-inventario" class="space-y-6 fade-in">
                     <div class="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
                         <button onclick="showSubmodule('inv-list')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600">Lista</button>
-                        <button id="btn-inv-add" onclick="showSubmodule('inv-add')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400 hover:text-indigo-600">Ingreso</button>
-                        <button id="btn-inv-ret" onclick="showSubmodule('inv-ret')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400 hover:text-indigo-600">Retiro</button>
-                        <button onclick="showSubmodule('inv-hist')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400 hover:text-indigo-600">Historial</button>
+                        <button id="btn-inv-add" onclick="showSubmodule('inv-add')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Ingreso</button>
+                        <button id="btn-inv-ret" onclick="showSubmodule('inv-ret')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Retiro</button>
+                        <button onclick="showSubmodule('inv-hist')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Historial</button>
                     </div>
 
                     <div id="inv-list" class="submodule table-container">
@@ -165,10 +172,10 @@
                         </table>
                     </div>
 
-                    <div id="inv-add" class="submodule hidden space-y-4 max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+                    <div id="inv-add" class="submodule hidden space-y-4 max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg">
                         <h3 class="text-lg font-bold text-indigo-600">Registrar Entrada</h3>
                         <div class="grid grid-cols-1 gap-4">
-                            <input type="text" id="inv-code" placeholder="Código / Serial" class="p-3 border rounded-lg focus:ring-2 ring-indigo-500 outline-none">
+                            <input type="text" id="inv-code" placeholder="Código / Serial" class="p-3 border rounded-lg outline-none">
                             <input type="text" id="inv-name" placeholder="Descripción" class="p-3 border rounded-lg">
                             <div class="grid grid-cols-2 gap-4">
                                 <input type="text" id="inv-brand" placeholder="Marca" class="p-3 border rounded-lg">
@@ -181,7 +188,7 @@
                                 <option value="Redes">Redes</option>
                                 <option value="Plantas">Plantas</option>
                             </select>
-                            <button onclick="saveItem()" class="bg-indigo-600 text-white p-3 rounded-lg font-bold shadow-indigo-200 shadow-lg">Guardar</button>
+                            <button onclick="saveItem()" class="bg-indigo-600 text-white p-3 rounded-lg font-bold">Guardar</button>
                         </div>
                     </div>
 
@@ -192,7 +199,7 @@
                             <input type="number" id="ret-qty" placeholder="Cantidad" class="w-full p-3 border rounded-lg">
                             <input type="text" id="ret-dest" placeholder="Destino / Uso" class="w-full p-3 border rounded-lg">
                             <input type="text" id="ret-auth" placeholder="Responsable" class="w-full p-3 border rounded-lg">
-                            <button onclick="withdrawItem()" class="w-full bg-orange-600 text-white p-3 rounded-lg font-bold shadow-lg shadow-orange-100">Procesar</button>
+                            <button onclick="withdrawItem()" class="w-full bg-orange-600 text-white p-3 rounded-lg font-bold">Procesar</button>
                         </div>
                     </div>
 
@@ -214,13 +221,50 @@
                 <!-- PLANTAS -->
                 <section id="mod-plantas" class="hidden space-y-6 fade-in">
                     <div class="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
-                        <button onclick="showSubmodule('pl-list')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600">Resumen</button>
+                        <button onclick="showSubmodule('pl-status')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600">Estado</button>
+                        <button onclick="showSubmodule('pl-list')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Consumos</button>
                         <button id="btn-pl-add" onclick="showSubmodule('pl-add')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400 hidden">Nueva</button>
                         <button id="btn-pl-reg" onclick="showSubmodule('pl-reg')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Lectura</button>
                         <button onclick="showSubmodule('pl-hist')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Historial</button>
                     </div>
 
-                    <div id="pl-list" class="submodule space-y-4">
+                    <!-- Estado actual de las plantas (NUEVO) -->
+                    <div id="pl-status" class="submodule table-container">
+                        <table class="w-full bg-white rounded-xl shadow-sm text-sm">
+                            <thead class="bg-gray-50 border-b">
+                                <tr>
+                                    <th class="p-4 text-left">Planta</th>
+                                    <th class="p-4 text-left">Tanque (L)</th>
+                                    <th class="p-4 text-left">Reserva (L)</th>
+                                    <th class="p-4 text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pl-status-body" class="divide-y"></tbody>
+                        </table>
+                    </div>
+
+                    <!-- Modal Edición Tanque (NUEVO) -->
+                    <div id="modal-edit-tanque" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
+                        <div class="bg-white p-6 rounded-xl w-full max-w-sm shadow-2xl">
+                            <h3 id="edit-tanque-title" class="text-lg font-bold text-indigo-600 mb-4">Editar Planta</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-xs font-bold text-gray-400">Capacidad Tanque (L)</label>
+                                    <input type="number" id="edit-tanque-val" class="w-full p-3 border rounded-lg mt-1">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-gray-400">Reserva Mínima (L)</label>
+                                    <input type="number" id="edit-reserva-val" class="w-full p-3 border rounded-lg mt-1">
+                                </div>
+                                <div class="flex gap-2 pt-2">
+                                    <button onclick="closeEditTanque()" class="flex-1 bg-gray-100 p-3 rounded-lg font-bold">Cancelar</button>
+                                    <button onclick="updatePlantTank()" class="flex-1 bg-indigo-600 text-white p-3 rounded-lg font-bold">Guardar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="pl-list" class="submodule hidden space-y-4">
                         <div class="bg-white p-4 rounded-xl shadow-sm flex flex-col md:flex-row gap-3">
                             <div class="flex items-center space-x-2 flex-1">
                                 <span class="text-xs font-bold text-gray-400">Rango:</span>
@@ -234,8 +278,8 @@
                                 <thead class="bg-gray-50 border-b">
                                     <tr>
                                         <th class="p-4 text-left">Planta</th>
-                                        <th class="p-4 text-left">Gasoil (L)</th>
-                                        <th class="p-4 text-left">Horas</th>
+                                        <th class="p-4 text-left">Gasoil Surtido (L)</th>
+                                        <th class="p-4 text-left">Horas Totales</th>
                                     </tr>
                                 </thead>
                                 <tbody id="pl-table-body" class="divide-y"></tbody>
@@ -287,7 +331,7 @@
                                 <option value="MONITOREO">MONITOREO</option>
                                 <option value="ADMINISTRADOR">ADMINISTRADOR</option>
                             </select>
-                            <button onclick="createUser()" class="bg-green-600 text-white p-3 rounded-lg font-bold shadow-green-100 shadow-lg">Crear Cuenta</button>
+                            <button onclick="createUser()" class="bg-green-600 text-white p-3 rounded-lg font-bold">Crear Cuenta</button>
                         </div>
                     </div>
 
@@ -315,15 +359,15 @@
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
-        const firebaseConfig = {
-    apiKey: "AIzaSyBkN6mE0YqWeAToslbgOAta80gjYi_C4Xk",
-    authDomain: "gerencia-de-energia.firebaseapp.com",
-    projectId: "gerencia-de-energia",
-    storageBucket: "gerencia-de-energia.firebasestorage.app",
-    messagingSenderId: "347966041919",
-    appId: "1:347966041919:web:40cfe12b6dbba953712d8a",
-    measurementId: "G-YMWMWKQYDL"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyBkN6mE0YqWeAToslbgOAta80gjYi_C4Xk",
+  authDomain: "gerencia-de-energia.firebaseapp.com",
+  projectId: "gerencia-de-energia",
+  storageBucket: "gerencia-de-energia.firebasestorage.app",
+  messagingSenderId: "347966041919",
+  appId: "1:347966041919:web:40cfe12b6dbba953712d8a",
+  measurementId: "G-YMWMWKQYDL"
+};
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -332,6 +376,7 @@
         let currentUser = null;
         let localUsers = []; 
         let authenticatedUser = null;
+        let currentEditPlantId = null;
         
         const getPublicPath = (col) => collection(db, 'artifacts', appId, 'public', 'data', col);
         const getUsersPath = () => collection(db, 'artifacts', appId, 'public', 'data', 'app_users');
@@ -343,7 +388,10 @@
             });
             document.getElementById(`mod-${modId}`).classList.remove('hidden');
             document.getElementById('module-title').innerText = modId;
-            if (window.innerWidth < 768) toggleSidebar(); // Auto-cerrar en móvil
+            if (window.innerWidth < 768) {
+                const sb = document.getElementById('sidebar');
+                if(sb.classList.contains('mobile-open')) toggleSidebar();
+            }
         };
 
         window.toggleSidebar = () => {
@@ -356,7 +404,6 @@
                 overlay.classList.toggle('active');
             } else {
                 sb.classList.toggle('sidebar-collapsed');
-                // Girar icono de flecha
                 if (sb.classList.contains('sidebar-collapsed')) {
                     icon.style.transform = 'rotate(180deg)';
                 } else {
@@ -394,7 +441,6 @@
             container.querySelectorAll('.submodule').forEach(s => s.classList.add('hidden'));
             document.getElementById(subId).classList.remove('hidden');
             
-            // Estilo botones tabs
             const tabs = container.querySelector('.flex.space-x-2');
             tabs.querySelectorAll('button').forEach(b => {
                 b.classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600');
@@ -457,9 +503,40 @@
         window.createNewPlant = async () => {
             const name = document.getElementById('pl-name-new').value.trim();
             if (!name) return;
-            await setDoc(doc(getPublicPath('plantas'), name), { name });
+            await setDoc(doc(getPublicPath('plantas'), name), { 
+                name, 
+                tanque: 0, 
+                reserva: 0 
+            });
             document.getElementById('pl-name-new').value = '';
             alert('Planta registrada');
+        };
+
+        // NUEVAS FUNCIONES MONITOREO PLANTAS
+        window.openEditTanque = (id, currentT, currentR) => {
+            if (!currentUser || (currentUser.level !== 'ADMINISTRADOR' && currentUser.level !== 'MONITOREO')) return;
+            currentEditPlantId = id;
+            document.getElementById('edit-tanque-title').innerText = `Editar Planta: ${id}`;
+            document.getElementById('edit-tanque-val').value = currentT || 0;
+            document.getElementById('edit-reserva-val').value = currentR || 0;
+            document.getElementById('modal-edit-tanque').classList.remove('hidden');
+        };
+
+        window.closeEditTanque = () => {
+            document.getElementById('modal-edit-tanque').classList.add('hidden');
+        };
+
+        window.updatePlantTank = async () => {
+            const t = parseFloat(document.getElementById('edit-tanque-val').value) || 0;
+            const r = parseFloat(document.getElementById('edit-reserva-val').value) || 0;
+            if (currentEditPlantId) {
+                await updateDoc(doc(getPublicPath('plantas'), currentEditPlantId), {
+                    tanque: t,
+                    reserva: r
+                });
+                alert('Datos actualizados');
+                closeEditTanque();
+            }
         };
 
         window.savePlantLog = async () => {
@@ -580,7 +657,37 @@
             // Plantas Sync
             onSnapshot(getPublicPath('plantas'), (snap) => {
                 const plantas = snap.docs.map(d => d.data());
+                
+                // Actualizar dropdown de lectura
                 document.getElementById('pl-select-reg').innerHTML = plantas.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+                
+                // Actualizar tabla de estado (Tanques y Reserva)
+                const statusBody = document.getElementById('pl-status-body');
+                statusBody.innerHTML = plantas.map(p => {
+                    const canEdit = currentUser && (currentUser.level === 'ADMINISTRADOR' || currentUser.level === 'MONITOREO');
+                    return `<tr>
+                        <td class="p-4 font-bold text-indigo-900">${p.name}</td>
+                        <td class="p-4">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-mono font-bold border border-blue-100">${p.tanque || 0} L</span>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex items-center gap-2">
+                                <span class="bg-orange-50 text-orange-700 px-3 py-1 rounded-lg font-mono font-bold border border-orange-100">${p.reserva || 0} L</span>
+                            </div>
+                        </td>
+                        <td class="p-4 text-center">
+                            ${canEdit ? `
+                                <button onclick="openEditTanque('${p.name}', ${p.tanque}, ${p.reserva})" class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-full transition">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                            ` : '<span class="text-gray-400 text-[10px] italic">Solo lectura</span>'}
+                        </td>
+                    </tr>`;
+                }).join('');
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+                
                 renderPlantsList();
             });
 
@@ -613,6 +720,3 @@
     </script>
 </body>
 </html>
-
-
-
