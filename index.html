@@ -165,11 +165,56 @@
                                 <tr>
                                     <th class="p-4 text-left font-bold text-gray-600">Cod</th>
                                     <th class="p-4 text-left font-bold text-gray-600">Nombre</th>
+                                    <th class="p-4 text-left font-bold text-gray-600">Depto</th>
                                     <th class="p-4 text-left font-bold text-gray-600">Stock</th>
+                                    <th class="p-4 text-center font-bold text-gray-600">Acción</th>
                                 </tr>
                             </thead>
                             <tbody id="inv-table-body" class="divide-y divide-gray-100"></tbody>
                         </table>
+                    </div>
+
+                    <!-- Modal Edición Inventario -->
+                    <div id="modal-edit-inv" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
+                        <div class="bg-white p-6 rounded-xl w-full max-w-sm shadow-2xl">
+                            <h3 class="text-lg font-bold text-indigo-600 mb-4">Editar Producto</h3>
+                            <div class="space-y-3">
+                                <input type="hidden" id="edit-inv-code">
+                                <div>
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase">Descripción</label>
+                                    <input type="text" id="edit-inv-name" class="w-full p-2 border rounded-lg text-sm">
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase">Marca</label>
+                                        <input type="text" id="edit-inv-brand" class="w-full p-2 border rounded-lg text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase">Modelo</label>
+                                        <input type="text" id="edit-inv-type" class="w-full p-2 border rounded-lg text-sm">
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase">Stock</label>
+                                        <input type="number" id="edit-inv-qty" class="w-full p-2 border rounded-lg text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase">Depto</label>
+                                        <select id="edit-inv-dept" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+                                            <option value="Cables">Cables</option>
+                                            <option value="Energía">Energía</option>
+                                            <option value="Redes">Redes</option>
+                                            <option value="Plantas">Plantas</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 pt-3">
+                                    <button onclick="closeEditInv()" class="flex-1 bg-gray-100 p-2 rounded-lg font-bold text-sm">Cancelar</button>
+                                    <button onclick="updateInventoryItem()" class="flex-1 bg-indigo-600 text-white p-2 rounded-lg font-bold text-sm">Actualizar</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="inv-add" class="submodule hidden space-y-4 max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg">
@@ -187,7 +232,6 @@
                                 <option value="Energía">Energía</option>
                                 <option value="Redes">Redes</option>
                                 <option value="Plantas">Plantas</option>
-                                <option value="Ferreteria">Ferreteria</option>
                             </select>
                             <button onclick="saveItem()" class="bg-indigo-600 text-white p-3 rounded-lg font-bold">Guardar</button>
                         </div>
@@ -243,17 +287,24 @@
                         </table>
                     </div>
 
+                    <!-- Modal Edición Planta (ACTUALIZADO PARA INCLUIR NOMBRE) -->
                     <div id="modal-edit-tanque" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
                         <div class="bg-white p-6 rounded-xl w-full max-w-sm shadow-2xl">
                             <h3 id="edit-tanque-title" class="text-lg font-bold text-indigo-600 mb-4">Editar Planta</h3>
                             <div class="space-y-4">
                                 <div>
-                                    <label class="text-xs font-bold text-gray-400">Capacidad Tanque (L)</label>
-                                    <input type="number" id="edit-tanque-val" class="w-full p-3 border rounded-lg mt-1">
+                                    <label class="text-xs font-bold text-gray-400 uppercase">Nombre / Identificador</label>
+                                    <input type="text" id="edit-pl-name-val" class="w-full p-3 border rounded-lg mt-1">
                                 </div>
-                                <div>
-                                    <label class="text-xs font-bold text-gray-400">Reserva Mínima (L)</label>
-                                    <input type="number" id="edit-reserva-val" class="w-full p-3 border rounded-lg mt-1">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-xs font-bold text-gray-400 uppercase">Tanque (L)</label>
+                                        <input type="number" id="edit-tanque-val" class="w-full p-3 border rounded-lg mt-1">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-gray-400 uppercase">Reserva (L)</label>
+                                        <input type="number" id="edit-reserva-val" class="w-full p-3 border rounded-lg mt-1">
+                                    </div>
                                 </div>
                                 <div class="flex gap-2 pt-2">
                                     <button onclick="closeEditTanque()" class="flex-1 bg-gray-100 p-3 rounded-lg font-bold">Cancelar</button>
@@ -372,10 +423,12 @@ const firebaseConfig = {
         const auth = getAuth(app);
         const appId = window.__app_id || 'gerencia-v1';
 
-        let currentUser = null; // Usuario logueado en la app localmente
+        let currentUser = null; 
         let localUsers = []; 
-        let authenticatedUser = null; // Usuario de Firebase Auth
+        let authenticatedUser = null; 
         let currentEditPlantId = null;
+        let cachedInventory = [];
+        let cachedPlantas = [];
         
         const getPublicPath = (col) => collection(db, 'artifacts', appId, 'public', 'data', col);
         const getUsersPath = () => collection(db, 'artifacts', appId, 'public', 'data', 'app_users');
@@ -422,8 +475,8 @@ const firebaseConfig = {
                 document.getElementById('main-app').classList.remove('hidden');
                 document.getElementById('user-display').innerText = `${found.fullname} | ${found.level}`;
                 applyPermissions(found.level);
-                // Forzar re-render de plantas para actualizar iconos de edición con el nuevo nivel
                 renderPlantsTable();
+                renderInventoryTable();
             } else {
                 const err = document.getElementById('login-error');
                 err.classList.remove('hidden');
@@ -477,6 +530,74 @@ const firebaseConfig = {
             btn.disabled = false;
         };
 
+        window.openEditInv = (code) => {
+            if (!currentUser || currentUser.level !== 'ADMINISTRADOR') return;
+            const item = cachedInventory.find(i => i.code === code);
+            if (!item) return;
+
+            document.getElementById('edit-inv-code').value = item.code;
+            document.getElementById('edit-inv-name').value = item.name || '';
+            document.getElementById('edit-inv-brand').value = item.brand || '';
+            document.getElementById('edit-inv-type').value = item.type || '';
+            document.getElementById('edit-inv-qty').value = item.qty || 0;
+            document.getElementById('edit-inv-dept').value = item.dept || 'Cables';
+            
+            document.getElementById('modal-edit-inv').classList.remove('hidden');
+        };
+
+        window.closeEditInv = () => {
+            document.getElementById('modal-edit-inv').classList.add('hidden');
+        };
+
+        window.updateInventoryItem = async () => {
+            if (!currentUser || currentUser.level !== 'ADMINISTRADOR') return;
+            const code = document.getElementById('edit-inv-code').value;
+            const data = {
+                name: document.getElementById('edit-inv-name').value.trim(),
+                brand: document.getElementById('edit-inv-brand').value.trim(),
+                type: document.getElementById('edit-inv-type').value.trim(),
+                qty: parseInt(document.getElementById('edit-inv-qty').value) || 0,
+                dept: document.getElementById('edit-inv-dept').value
+            };
+
+            try {
+                await updateDoc(doc(getPublicPath('inventario'), code), data);
+                await addDoc(getPublicPath('inv_history'), {
+                    timestamp: Date.now(), action: 'EDICIÓN', code: code, qty: data.qty, extra: `Modificado por Admin`
+                });
+                alert('Producto actualizado');
+                closeEditInv();
+            } catch(e) {
+                alert('Error al actualizar inventario.');
+            }
+        };
+
+        window.renderInventoryTable = () => {
+            const body = document.getElementById('inv-table-body');
+            body.innerHTML = cachedInventory.map(i => {
+                const canEdit = currentUser && currentUser.level === 'ADMINISTRADOR';
+                return `<tr class="hover:bg-indigo-50/30 transition">
+                    <td class="p-4 font-mono font-bold text-indigo-700">${i.code}</td>
+                    <td class="p-4">
+                        <div class="font-bold text-gray-800">${i.name}</div>
+                        <div class="text-[10px] text-gray-400 uppercase">${i.brand} | ${i.type}</div>
+                    </td>
+                    <td class="p-4">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase">${i.dept || 'N/A'}</span>
+                    </td>
+                    <td class="p-4"><span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold">${i.qty}</span></td>
+                    <td class="p-4 text-center">
+                         ${canEdit ? `
+                            <button onclick="openEditInv('${i.code}')" class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-full transition">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                        ` : '<span class="text-gray-300 text-[10px]">—</span>'}
+                    </td>
+                </tr>`;
+            }).join('');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        };
+
         window.withdrawItem = async () => {
             if (!authenticatedUser) return;
             const code = document.getElementById('ret-code').value.trim();
@@ -513,15 +634,14 @@ const firebaseConfig = {
             alert('Planta registrada');
         };
 
-        // CORRECCIÓN PERMISOS EDICIÓN TANQUE
         window.openEditTanque = (id, currentT, currentR) => {
-            // Verificación redundante de seguridad local
             if (!currentUser || (currentUser.level !== 'ADMINISTRADOR' && currentUser.level !== 'MONITOREO')) {
                 alert('No tiene permisos para editar estos valores.');
                 return;
             }
             currentEditPlantId = id;
             document.getElementById('edit-tanque-title').innerText = `Editar Planta: ${id}`;
+            document.getElementById('edit-pl-name-val').value = id;
             document.getElementById('edit-tanque-val').value = currentT || 0;
             document.getElementById('edit-reserva-val').value = currentR || 0;
             document.getElementById('modal-edit-tanque').classList.remove('hidden');
@@ -532,19 +652,34 @@ const firebaseConfig = {
         };
 
         window.updatePlantTank = async () => {
+            const newName = document.getElementById('edit-pl-name-val').value.trim();
             const t = parseFloat(document.getElementById('edit-tanque-val').value) || 0;
             const r = parseFloat(document.getElementById('edit-reserva-val').value) || 0;
-            if (currentEditPlantId) {
-                try {
+            
+            if (!newName) return alert('El nombre no puede estar vacío');
+            if (!currentEditPlantId) return;
+
+            try {
+                // Si el nombre cambió, debemos crear un documento nuevo y borrar el viejo
+                if (newName !== currentEditPlantId) {
+                    await setDoc(doc(getPublicPath('plantas'), newName), {
+                        name: newName,
+                        tanque: t,
+                        reserva: r
+                    });
+                    await deleteDoc(doc(getPublicPath('plantas'), currentEditPlantId));
+                } else {
+                    // Si el nombre es igual, solo actualizamos campos
                     await updateDoc(doc(getPublicPath('plantas'), currentEditPlantId), {
                         tanque: t,
                         reserva: r
                     });
-                    alert('Datos actualizados');
-                    closeEditTanque();
-                } catch(e) {
-                    alert('Error al actualizar datos en servidor.');
                 }
+                alert('Planta actualizada correctamente');
+                closeEditTanque();
+            } catch(e) {
+                console.error(e);
+                alert('Error al actualizar datos.');
             }
         };
 
@@ -561,11 +696,9 @@ const firebaseConfig = {
             document.getElementById('pl-hrs').value = '';
         };
 
-        let cachedPlantas = [];
         window.renderPlantsTable = () => {
             const statusBody = document.getElementById('pl-status-body');
             statusBody.innerHTML = cachedPlantas.map(p => {
-                // Validación del nivel de usuario cargado en la sesión local
                 const canEdit = currentUser && (currentUser.level === 'ADMINISTRADOR' || currentUser.level === 'MONITOREO');
                 return `<tr>
                     <td class="p-4 font-bold text-indigo-900">${p.name}</td>
@@ -667,18 +800,8 @@ const firebaseConfig = {
 
             // Inventario Sync
             onSnapshot(getPublicPath('inventario'), (snap) => {
-                const body = document.getElementById('inv-table-body');
-                body.innerHTML = snap.docs.map(d => {
-                    const i = d.data();
-                    return `<tr class="hover:bg-indigo-50/30 transition">
-                        <td class="p-4 font-mono font-bold text-indigo-700">${i.code}</td>
-                        <td class="p-4">
-                            <div class="font-bold text-gray-800">${i.name}</div>
-                            <div class="text-[10px] text-gray-400 uppercase">${i.brand} | ${i.type}</div>
-                        </td>
-                        <td class="p-4"><span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold">${i.qty}</span></td>
-                    </tr>`;
-                }).join('');
+                cachedInventory = snap.docs.map(d => d.data());
+                renderInventoryTable();
             });
 
             // Historial Sync
@@ -687,7 +810,7 @@ const firebaseConfig = {
                 const list = snap.docs.map(d => d.data()).sort((a,b) => b.timestamp - a.timestamp);
                 body.innerHTML = list.slice(0, 30).map(h => `<tr>
                     <td class="p-3 text-[10px]">${new Date(h.timestamp).toLocaleDateString()}</td>
-                    <td class="p-3 font-bold ${h.action === 'INGRESO' ? 'text-green-600' : 'text-orange-600'}">${h.action[0]}</td>
+                    <td class="p-3 font-bold ${h.action === 'INGRESO' ? 'text-green-600' : h.action === 'RETIRO' ? 'text-orange-600' : h.action === 'EDICIÓN' ? 'text-blue-600' : 'text-gray-600'}">${h.action[0]}</td>
                     <td class="p-3">${h.code}</td>
                     <td class="p-3 font-bold">${h.qty}</td>
                 </tr>`).join('');
@@ -696,14 +819,8 @@ const firebaseConfig = {
             // Plantas Sync
             onSnapshot(getPublicPath('plantas'), (snap) => {
                 cachedPlantas = snap.docs.map(d => d.data());
-                
-                // Actualizar dropdown de lectura
                 document.getElementById('pl-select-reg').innerHTML = cachedPlantas.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-                
-                // Renderizar tabla de estado
                 renderPlantsTable();
-                
-                // Renderizar lista de consumos
                 renderPlantsList();
             });
 
@@ -736,4 +853,3 @@ const firebaseConfig = {
     </script>
 </body>
 </html>
-
