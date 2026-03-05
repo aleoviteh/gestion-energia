@@ -52,6 +52,10 @@
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Scrollbar styling */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-900 overflow-x-hidden">
@@ -159,19 +163,29 @@
                         <button onclick="showSubmodule('inv-hist')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Historial</button>
                     </div>
 
-                    <div id="inv-list" class="submodule table-container">
-                        <table class="w-full bg-white rounded-xl shadow-sm overflow-hidden text-sm">
-                            <thead class="bg-gray-50 border-b">
-                                <tr>
-                                    <th class="p-4 text-left font-bold text-gray-600">Cod</th>
-                                    <th class="p-4 text-left font-bold text-gray-600">Nombre</th>
-                                    <th class="p-4 text-left font-bold text-gray-600">Depto</th>
-                                    <th class="p-4 text-left font-bold text-gray-600">Stock</th>
-                                    <th class="p-4 text-center font-bold text-gray-600">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="inv-table-body" class="divide-y divide-gray-100"></tbody>
-                        </table>
+                    <div id="inv-list" class="submodule space-y-4">
+                        <!-- Barra de Búsqueda -->
+                        <div class="relative w-full max-w-md">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                            </span>
+                            <input type="text" id="inv-search-input" oninput="renderInventoryTable()" placeholder="Buscar por nombre o código..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
+                        </div>
+
+                        <div class="table-container">
+                            <table class="w-full bg-white rounded-xl shadow-sm overflow-hidden text-sm">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="p-4 text-left font-bold text-gray-600">Cod</th>
+                                        <th class="p-4 text-left font-bold text-gray-600">Nombre</th>
+                                        <th class="p-4 text-left font-bold text-gray-600">Depto</th>
+                                        <th class="p-4 text-left font-bold text-gray-600">Stock</th>
+                                        <th class="p-4 text-center font-bold text-gray-600">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inv-table-body" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- Modal Edición Inventario -->
@@ -206,7 +220,6 @@
                                             <option value="Energía">Energía</option>
                                             <option value="Redes">Redes</option>
                                             <option value="Plantas">Plantas</option>
-                                            <option value="Ferreteria">Ferreteria</option>
                                         </select>
                                     </div>
                                 </div>
@@ -233,7 +246,6 @@
                                 <option value="Energía">Energía</option>
                                 <option value="Redes">Redes</option>
                                 <option value="Plantas">Plantas</option>
-                                <option value="Ferreteria">Ferreteria</option>
                             </select>
                             <button onclick="saveItem()" class="bg-indigo-600 text-white p-3 rounded-lg font-bold">Guardar</button>
                         </div>
@@ -289,7 +301,7 @@
                         </table>
                     </div>
 
-                    <!-- Modal Edición Planta (ACTUALIZADO PARA INCLUIR NOMBRE) -->
+                    <!-- Modal Edición Planta -->
                     <div id="modal-edit-tanque" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
                         <div class="bg-white p-6 rounded-xl w-full max-w-sm shadow-2xl">
                             <h3 id="edit-tanque-title" class="text-lg font-bold text-indigo-600 mb-4">Editar Planta</h3>
@@ -411,7 +423,7 @@
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
-const firebaseConfig = {
+        const firebaseConfig = {
   apiKey: "AIzaSyBkN6mE0YqWeAToslbgOAta80gjYi_C4Xk",
   authDomain: "gerencia-de-energia.firebaseapp.com",
   projectId: "gerencia-de-energia",
@@ -438,7 +450,8 @@ const firebaseConfig = {
         // Navegación Global
         window.navigate = (modId) => {
             ['inventario', 'plantas', 'usuarios'].forEach(s => {
-                document.getElementById(`mod-${s}`).classList.add('hidden');
+                const el = document.getElementById(`mod-${s}`);
+                if (el) el.classList.add('hidden');
             });
             document.getElementById(`mod-${modId}`).classList.remove('hidden');
             document.getElementById('module-title').innerText = modId;
@@ -493,17 +506,21 @@ const firebaseConfig = {
         };
 
         window.showSubmodule = (subId) => {
-            const container = document.getElementById(subId).parentElement;
+            const el = document.getElementById(subId);
+            if (!el) return;
+            const container = el.parentElement;
             container.querySelectorAll('.submodule').forEach(s => s.classList.add('hidden'));
-            document.getElementById(subId).classList.remove('hidden');
+            el.classList.remove('hidden');
             
             const tabs = container.querySelector('.flex.space-x-2');
-            tabs.querySelectorAll('button').forEach(b => {
-                b.classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600');
-                b.classList.add('text-gray-400');
-            });
-            event.target.classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600');
-            event.target.classList.remove('text-gray-400');
+            if (tabs) {
+                tabs.querySelectorAll('button').forEach(b => {
+                    b.classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600');
+                    b.classList.add('text-gray-400');
+                });
+                event.target.classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600');
+                event.target.classList.remove('text-gray-400');
+            }
         };
 
         // Inventario Logic
@@ -519,7 +536,10 @@ const firebaseConfig = {
                 qty: parseInt(document.getElementById('inv-qty').value),
                 dept: document.getElementById('inv-dept').value
             };
-            if (!data.code || isNaN(data.qty)) return (btn.disabled = false);
+            if (!data.code || isNaN(data.qty)) {
+                btn.disabled = false;
+                return;
+            }
             
             try {
                 await setDoc(doc(getPublicPath('inventario'), data.code), data);
@@ -575,8 +595,18 @@ const firebaseConfig = {
         };
 
         window.renderInventoryTable = () => {
+            const searchVal = document.getElementById('inv-search-input')?.value.toLowerCase() || "";
             const body = document.getElementById('inv-table-body');
-            body.innerHTML = cachedInventory.map(i => {
+            
+            // Filtrar la caché local
+            const filteredItems = cachedInventory.filter(item => {
+                const nameMatch = (item.name || "").toLowerCase().includes(searchVal);
+                const codeMatch = (item.code || "").toLowerCase().includes(searchVal);
+                const brandMatch = (item.brand || "").toLowerCase().includes(searchVal);
+                return nameMatch || codeMatch || brandMatch;
+            });
+
+            body.innerHTML = filteredItems.map(i => {
                 const canEdit = currentUser && currentUser.level === 'ADMINISTRADOR';
                 return `<tr class="hover:bg-indigo-50/30 transition">
                     <td class="p-4 font-mono font-bold text-indigo-700">${i.code}</td>
@@ -597,6 +627,11 @@ const firebaseConfig = {
                     </td>
                 </tr>`;
             }).join('');
+            
+            if (filteredItems.length === 0) {
+                body.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">No se encontraron resultados para "${searchVal}"</td></tr>`;
+            }
+
             if (typeof lucide !== 'undefined') lucide.createIcons();
         };
 
@@ -662,7 +697,6 @@ const firebaseConfig = {
             if (!currentEditPlantId) return;
 
             try {
-                // Si el nombre cambió, debemos crear un documento nuevo y borrar el viejo
                 if (newName !== currentEditPlantId) {
                     await setDoc(doc(getPublicPath('plantas'), newName), {
                         name: newName,
@@ -671,7 +705,6 @@ const firebaseConfig = {
                     });
                     await deleteDoc(doc(getPublicPath('plantas'), currentEditPlantId));
                 } else {
-                    // Si el nombre es igual, solo actualizamos campos
                     await updateDoc(doc(getPublicPath('plantas'), currentEditPlantId), {
                         tanque: t,
                         reserva: r
@@ -771,13 +804,15 @@ const firebaseConfig = {
 
         function applyPermissions(level) {
             if (level === 'ADMINISTRADOR') {
-                document.getElementById('nav-usuarios').classList.remove('hidden');
-                document.getElementById('btn-pl-add').classList.remove('hidden');
+                const navUsr = document.getElementById('nav-usuarios');
+                const btnPlAdd = document.getElementById('btn-pl-add');
+                if (navUsr) navUsr.classList.remove('hidden');
+                if (btnPlAdd) btnPlAdd.classList.remove('hidden');
             }
             if (level === 'OBSERVADOR') {
-                document.getElementById('btn-inv-add').classList.add('hidden');
-                document.getElementById('btn-inv-ret').classList.add('hidden');
-                document.getElementById('btn-pl-reg').classList.add('hidden');
+                document.getElementById('btn-inv-add')?.classList.add('hidden');
+                document.getElementById('btn-inv-ret')?.classList.add('hidden');
+                document.getElementById('btn-pl-reg')?.classList.add('hidden');
             }
         }
 
@@ -793,11 +828,13 @@ const firebaseConfig = {
                     setDoc(doc(getUsersPath(), 'adm_root'), { fullname: 'Master Root', username: 'Admin', pass: 'admin1', level: 'ADMINISTRADOR' });
                 }
                 const body = document.getElementById('users-table-body');
-                body.innerHTML = localUsers.map(u => `<tr>
-                    <td class="p-4 text-xs font-bold">${u.username}</td>
-                    <td class="p-4 text-xs">${u.level}</td>
-                    <td class="p-4 text-right">${u.username !== 'Admin' ? `<button onclick="deleteUser('${u.id}')" class="text-red-500">Eliminar</button>` : ''}</td>
-                </tr>`).join('');
+                if (body) {
+                    body.innerHTML = localUsers.map(u => `<tr>
+                        <td class="p-4 text-xs font-bold">${u.username}</td>
+                        <td class="p-4 text-xs">${u.level}</td>
+                        <td class="p-4 text-right">${u.username !== 'Admin' ? `<button onclick="deleteUser('${u.id}')" class="text-red-500">Eliminar</button>` : ''}</td>
+                    </tr>`).join('');
+                }
             });
 
             // Inventario Sync
@@ -809,32 +846,37 @@ const firebaseConfig = {
             // Historial Sync
             onSnapshot(getPublicPath('inv_history'), (snap) => {
                 const body = document.getElementById('inv-hist-body');
-                const list = snap.docs.map(d => d.data()).sort((a,b) => b.timestamp - a.timestamp);
-                body.innerHTML = list.slice(0, 30).map(h => `<tr>
-                    <td class="p-3 text-[10px]">${new Date(h.timestamp).toLocaleDateString()}</td>
-                    <td class="p-3 font-bold ${h.action === 'INGRESO' ? 'text-green-600' : h.action === 'RETIRO' ? 'text-orange-600' : h.action === 'EDICIÓN' ? 'text-blue-600' : 'text-gray-600'}">${h.action[0]}</td>
-                    <td class="p-3">${h.code}</td>
-                    <td class="p-3 font-bold">${h.qty}</td>
-                </tr>`).join('');
+                if (body) {
+                    const list = snap.docs.map(d => d.data()).sort((a,b) => b.timestamp - a.timestamp);
+                    body.innerHTML = list.slice(0, 30).map(h => `<tr>
+                        <td class="p-3 text-[10px]">${new Date(h.timestamp).toLocaleDateString()}</td>
+                        <td class="p-3 font-bold ${h.action === 'INGRESO' ? 'text-green-600' : h.action === 'RETIRO' ? 'text-orange-600' : h.action === 'EDICIÓN' ? 'text-blue-600' : 'text-gray-600'}">${h.action[0]}</td>
+                        <td class="p-3">${h.code}</td>
+                        <td class="p-3 font-bold">${h.qty}</td>
+                    </tr>`).join('');
+                }
             });
 
             // Plantas Sync
             onSnapshot(getPublicPath('plantas'), (snap) => {
                 cachedPlantas = snap.docs.map(d => d.data());
-                document.getElementById('pl-select-reg').innerHTML = cachedPlantas.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+                const selReg = document.getElementById('pl-select-reg');
+                if (selReg) selReg.innerHTML = cachedPlantas.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
                 renderPlantsTable();
                 renderPlantsList();
             });
 
             onSnapshot(getPublicPath('plantas_logs'), (snap) => {
                 const body = document.getElementById('pl-hist-body');
-                const list = snap.docs.map(d => d.data()).sort((a,b) => b.timestamp - a.timestamp);
-                body.innerHTML = list.slice(0, 20).map(l => `<tr>
-                    <td class="p-3">${l.dateStr}</td>
-                    <td class="p-3 font-bold text-indigo-800">${l.plantName}</td>
-                    <td class="p-3">${l.gas}</td>
-                    <td class="p-3 font-mono">${l.hrs}</td>
-                </tr>`).join('');
+                if (body) {
+                    const list = snap.docs.map(d => d.data()).sort((a,b) => b.timestamp - a.timestamp);
+                    body.innerHTML = list.slice(0, 20).map(l => `<tr>
+                        <td class="p-3">${l.dateStr}</td>
+                        <td class="p-3 font-bold text-indigo-800">${l.plantName}</td>
+                        <td class="p-3">${l.gas}</td>
+                        <td class="p-3 font-mono">${l.hrs}</td>
+                    </tr>`).join('');
+                }
             });
         }
 
@@ -855,4 +897,3 @@ const firebaseConfig = {
     </script>
 </body>
 </html>
-
