@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gerencia - Sistema de Gestión</title>
+    <title>Gerencia de Energía</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/lucide.min.js"></script>
     <style>
@@ -79,7 +79,7 @@
     <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 px-4">
         <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-sm">
             <div class="text-center mb-6">
-                <h1 class="text-2xl font-bold text-indigo-600">GERENCIA ENERGÍA</h1>
+                <h1 class="text-2xl font-bold text-indigo-600">GERENCIA DE ENERGÍA</h1>
                 <div class="mt-4 flex justify-center">
                     <div class="bg-indigo-100 p-3 rounded-full text-indigo-600">
                         <i data-lucide="zap" class="w-8 h-8 fill-current"></i>
@@ -132,7 +132,7 @@
             <div class="p-3 border-t border-indigo-900/50 mb-4">
                 <button onclick="handleLogout()" class="nav-item w-full flex items-center p-3 rounded-xl text-red-400 hover:bg-red-950/30 transition text-left group">
                     <i data-lucide="log-out" class="w-5 h-5 mr-3 flex-shrink-0"></i> 
-                    <span class="nav-text text-sm font-medium">Salir</span>
+                    <span class="nav-text text-sm font-medium">SALIR</span>
                 </button>
             </div>
         </aside>
@@ -265,6 +265,14 @@
                     </div>
 
                     <div id="inv-hist" class="submodule hidden table-container">
+                                                <!-- Barra de Búsqueda -->
+                        <div class="relative w-full max-w-md">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                            </span>
+                            <input type="text" id="inv-search-input" oninput="renderInventoryTable()" placeholder="Buscar por nombre o código..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
+                        </div>
+
                         <table class="w-full bg-white rounded-xl shadow-sm text-xs">
                             <thead class="bg-gray-50 border-b">
                                 <tr>
@@ -589,7 +597,7 @@
             try {
                 await updateDoc(doc(getPublicPath('inventario'), code), data);
                 await addDoc(getPublicPath('inv_history'), {
-                    timestamp: Date.now(), action: 'EDICIÓN', code: code, qty: data.qty, extra: `Modificado por Admin`
+                    timestamp: Date.now(), action: 'EDICIÓN', code: code, name: name, qty: data.qty,  extra: `Modificado por Admin`
                 });
                 alert('Producto actualizado');
                 closeEditInv();
@@ -902,6 +910,7 @@
     </script>
 </body>
 </html>
+
 
 
 
