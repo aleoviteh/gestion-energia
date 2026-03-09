@@ -597,7 +597,7 @@
             try {
                 await updateDoc(doc(getPublicPath('inventario'), code), data);
                 await addDoc(getPublicPath('inv_history'), {
-                    timestamp: Date.now(), action: 'EDICIÓN', code: code, name: name, qty: data.qty,  extra: `Modificado por Admin`
+                    timestamp: Date.now(), action: 'EDICIÓN', code: code, name: name, qty: data.qty,  dest: dest, extra: `Modificado por Admin`
                 });
                 alert('Producto actualizado');
                 closeEditInv();
@@ -910,6 +910,7 @@
     </script>
 </body>
 </html>
+
 
 
 
