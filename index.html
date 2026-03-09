@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gerencia de Energía</title>
+    <title>Gerencia - Sistema de Gestión</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/lucide.min.js"></script>
     <style>
@@ -79,7 +79,7 @@
     <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 px-4">
         <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-sm">
             <div class="text-center mb-6">
-                <h1 class="text-2xl font-bold text-indigo-600">GERENCIA DE ENERGÍA</h1>
+                <h1 class="text-2xl font-bold text-indigo-600">GERENCIA ENERGÍA</h1>
                 <div class="mt-4 flex justify-center">
                     <div class="bg-indigo-100 p-3 rounded-full text-indigo-600">
                         <i data-lucide="zap" class="w-8 h-8 fill-current"></i>
@@ -132,7 +132,7 @@
             <div class="p-3 border-t border-indigo-900/50 mb-4">
                 <button onclick="handleLogout()" class="nav-item w-full flex items-center p-3 rounded-xl text-red-400 hover:bg-red-950/30 transition text-left group">
                     <i data-lucide="log-out" class="w-5 h-5 mr-3 flex-shrink-0"></i> 
-                    <span class="nav-text text-sm font-medium">SALIR</span>
+                    <span class="nav-text text-sm font-medium">Salir</span>
                 </button>
             </div>
         </aside>
@@ -164,7 +164,7 @@
                     </div>
 
                     <div id="inv-list" class="submodule space-y-4">
-                        <!-- Barra de Búsqueda -->
+                        <!-- Barra de Búsqueda Lista -->
                         <div class="relative w-full max-w-md">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                                 <i data-lucide="search" class="w-4 h-4"></i>
@@ -220,7 +220,6 @@
                                             <option value="Energía">Energía</option>
                                             <option value="Redes">Redes</option>
                                             <option value="Plantas">Plantas</option>
-                                            <option value="Ferreteria">Ferreteria</option>
                                         </select>
                                     </div>
                                 </div>
@@ -247,7 +246,6 @@
                                 <option value="Energía">Energía</option>
                                 <option value="Redes">Redes</option>
                                 <option value="Plantas">Plantas</option>
-                                <option value="Ferreteria">Ferreteria</option>
                             </select>
                             <button onclick="saveItem()" class="bg-indigo-600 text-white p-3 rounded-lg font-bold">Guardar</button>
                         </div>
@@ -258,34 +256,36 @@
                         <div class="space-y-4">
                             <input type="text" id="ret-code" placeholder="Código del Artículo" class="w-full p-3 border rounded-lg">
                             <input type="number" id="ret-qty" placeholder="Cantidad" class="w-full p-3 border rounded-lg">
-                            <input type="text" id="ret-dest" placeholder="Destino" class="w-full p-3 border rounded-lg">
+                            <input type="text" id="ret-dest" placeholder="Destino / Uso" class="w-full p-3 border rounded-lg">
                             <input type="text" id="ret-auth" placeholder="Responsable" class="w-full p-3 border rounded-lg">
                             <button onclick="withdrawItem()" class="w-full bg-orange-600 text-white p-3 rounded-lg font-bold">Procesar</button>
                         </div>
                     </div>
 
-                    <div id="inv-hist" class="submodule hidden table-container">
-                                                <!-- Barra de Búsqueda -->
+                    <div id="inv-hist" class="submodule hidden space-y-4">
+                        <!-- Barra de Búsqueda Historial -->
                         <div class="relative w-full max-w-md">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                                 <i data-lucide="search" class="w-4 h-4"></i>
                             </span>
-                            <input type="text" id="inv-search-input" oninput="renderInventoryTable()" placeholder="Buscar por nombre o código..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
+                            <input type="text" id="hist-search-input" oninput="renderHistoryTable()" placeholder="Buscar en historial (nombre, código o destino)..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
                         </div>
 
-                        <table class="w-full bg-white rounded-xl shadow-sm text-xs">
-                            <thead class="bg-gray-50 border-b">
-                                <tr>
-                                    <th class="p-3 text-left">Fecha</th>
-                                    <th class="p-3 text-left">Mov</th>
-                                    <th class="p-3 text-left">Cod</th>
-                                    <th class="p-3 text-left">Nombre</th>
-                                    <th class="p-3 text-left">Cant</th>
-                                    <th class="p-3 text-left">Destino</th>
-                                </tr>
-                            </thead>
-                            <tbody id="inv-hist-body" class="divide-y divide-gray-100"></tbody>
-                        </table>
+                        <div class="table-container">
+                            <table class="w-full bg-white rounded-xl shadow-sm text-xs">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="p-3 text-left font-bold text-gray-600">Fecha</th>
+                                        <th class="p-3 text-left font-bold text-gray-600">Mov</th>
+                                        <th class="p-3 text-left font-bold text-gray-600">Cod</th>
+                                        <th class="p-3 text-left font-bold text-gray-600">Artículo</th>
+                                        <th class="p-3 text-left font-bold text-gray-600">Cant</th>
+                                        <th class="p-3 text-left font-bold text-gray-600">Detalle/Destino</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inv-hist-body" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
 
@@ -435,7 +435,7 @@
         import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
-        const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyBkN6mE0YqWeAToslbgOAta80gjYi_C4Xk",
   authDomain: "gerencia-de-energia.firebaseapp.com",
   projectId: "gerencia-de-energia",
@@ -455,6 +455,7 @@
         let currentEditPlantId = null;
         let cachedInventory = [];
         let cachedPlantas = [];
+        let cachedHistory = []; // Caché para el historial de inventario
         
         const getPublicPath = (col) => collection(db, 'artifacts', appId, 'public', 'data', col);
         const getUsersPath = () => collection(db, 'artifacts', appId, 'public', 'data', 'app_users');
@@ -504,6 +505,7 @@
                 applyPermissions(found.level);
                 renderPlantsTable();
                 renderInventoryTable();
+                renderHistoryTable();
             } else {
                 const err = document.getElementById('login-error');
                 err.classList.remove('hidden');
@@ -556,7 +558,7 @@
             try {
                 await setDoc(doc(getPublicPath('inventario'), data.code), data);
                 await addDoc(getPublicPath('inv_history'), {
-                    timestamp: Date.now(), action: 'INGRESO', code: data.code, name: data.name, qty: data.qty, extra: `Depto: ${data.dept}`
+                    timestamp: Date.now(), action: 'INGRESO', code: data.code, qty: data.qty, extra: `Depto: ${data.dept}`
                 });
                 alert('Guardado exitosamente');
                 document.querySelectorAll('#inv-add input').forEach(i => i.value = '');
@@ -597,7 +599,7 @@
             try {
                 await updateDoc(doc(getPublicPath('inventario'), code), data);
                 await addDoc(getPublicPath('inv_history'), {
-                    timestamp: Date.now(), action: 'EDICIÓN', code: code, name: name, qty: data.qty,  dest: dest, extra: `Modificado por Admin`
+                    timestamp: Date.now(), action: 'EDICIÓN', code: code, qty: data.qty, extra: `Modificado por Admin`
                 });
                 alert('Producto actualizado');
                 closeEditInv();
@@ -645,6 +647,49 @@
             }
 
             if (typeof lucide !== 'undefined') lucide.createIcons();
+        };
+
+        // Función para renderizar el historial con búsqueda y campos adicionales
+        window.renderHistoryTable = () => {
+            const searchVal = document.getElementById('hist-search-input')?.value.toLowerCase() || "";
+            const body = document.getElementById('inv-hist-body');
+            if (!body) return;
+
+            // Cruzar datos de historial con la caché de inventario para obtener nombres
+            const enrichedHistory = cachedHistory.map(h => {
+                const item = cachedInventory.find(inv => inv.code === h.code);
+                return {
+                    ...h,
+                    itemName: item ? item.name : 'Artículo no identificado'
+                };
+            });
+
+            // Filtrar historial
+            const filteredHistory = enrichedHistory.filter(h => {
+                const codeMatch = (h.code || "").toLowerCase().includes(searchVal);
+                const nameMatch = (h.itemName || "").toLowerCase().includes(searchVal);
+                const extraMatch = (h.extra || "").toLowerCase().includes(searchVal);
+                return codeMatch || nameMatch || extraMatch;
+            });
+
+            body.innerHTML = filteredHistory.map(h => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="p-3 text-[10px] text-gray-500">${new Date(h.timestamp).toLocaleDateString()} ${new Date(h.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${h.action === 'INGRESO' ? 'bg-green-100 text-green-700' : h.action === 'RETIRO' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">
+                            ${h.action}
+                        </span>
+                    </td>
+                    <td class="p-3 font-mono font-bold text-gray-600">${h.code}</td>
+                    <td class="p-3 font-medium text-gray-800">${h.itemName}</td>
+                    <td class="p-3 font-bold text-gray-900">${h.qty}</td>
+                    <td class="p-3 text-gray-500 italic text-[10px]">${h.extra || '—'}</td>
+                </tr>
+            `).join('');
+
+            if (filteredHistory.length === 0) {
+                body.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-400 italic">No hay registros que coincidan con la búsqueda</td></tr>`;
+            }
         };
 
         window.withdrawItem = async () => {
@@ -853,21 +898,13 @@
             onSnapshot(getPublicPath('inventario'), (snap) => {
                 cachedInventory = snap.docs.map(d => d.data());
                 renderInventoryTable();
+                renderHistoryTable(); // Re-renderizar historial si el inventario cambia (para nombres actualizados)
             });
 
             // Historial Sync
             onSnapshot(getPublicPath('inv_history'), (snap) => {
-                const body = document.getElementById('inv-hist-body');
-                if (body) {
-                    const list = snap.docs.map(d => d.data()).sort((a,b) => b.timestamp - a.timestamp);
-                    body.innerHTML = list.slice(0, 30).map(h => `<tr>
-                        <td class="p-3 text-[10px]">${new Date(h.timestamp).toLocaleDateString()}</td>
-                        <td class="p-3 font-bold ${h.action === 'INGRESO' ? 'text-green-600' : h.action === 'RETIRO' ? 'text-orange-600' : h.action === 'EDICIÓN' ? 'text-blue-600' : 'text-gray-600'}">${h.action[0]}</td>
-                        <td class="p-3">${h.code}</td>
-                        <td class="p-3">${h.name}</td>
-                        <td class="p-3 font-bold">${h.qty}</td>
-                    </tr>`).join('');
-                }
+                cachedHistory = snap.docs.map(d => d.data()).sort((a,b) => b.timestamp - a.timestamp);
+                renderHistoryTable();
             });
 
             // Plantas Sync
@@ -910,11 +947,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
