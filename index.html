@@ -44,7 +44,6 @@
         .bg-connection-ok { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
         .bg-connection-fail { background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
 
-        /* Estilo de tablas responsivas */
         .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
         .fade-in { animation: fadeIn 0.4s ease-out; }
@@ -53,7 +52,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Scrollbar styling */
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -139,7 +137,6 @@
 
         <!-- Content Area -->
         <main class="flex-1 flex flex-col overflow-hidden w-full">
-            <!-- Header -->
             <header class="bg-white border-b h-16 flex items-center justify-between px-4 md:px-8 shadow-sm">
                 <div class="flex items-center space-x-3">
                     <button onclick="toggleSidebar()" class="md:hidden p-2 -ml-2">
@@ -151,7 +148,6 @@
                 <div id="user-display" class="hidden md:block text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full uppercase tracking-tighter"></div>
             </header>
 
-            <!-- Modules Container -->
             <div id="content" class="flex-1 overflow-y-auto p-4 md:p-8">
                 
                 <!-- INVENTARIO -->
@@ -170,7 +166,6 @@
                             </span>
                             <input type="text" id="inv-search-input" oninput="renderInventoryTable()" placeholder="Buscar por nombre o código..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
                         </div>
-
                         <div class="table-container">
                             <table class="w-full bg-white rounded-xl shadow-sm overflow-hidden text-sm">
                                 <thead class="bg-gray-50 border-b">
@@ -187,6 +182,7 @@
                         </div>
                     </div>
 
+                    <!-- Modal Edición Inv -->
                     <div id="modal-edit-inv" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
                         <div class="bg-white p-6 rounded-xl w-full max-w-sm shadow-2xl">
                             <h3 class="text-lg font-bold text-indigo-600 mb-4">Editar Producto</h3>
@@ -265,9 +261,8 @@
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                                 <i data-lucide="search" class="w-4 h-4"></i>
                             </span>
-                            <input type="text" id="hist-search-input" oninput="renderHistoryTable()" placeholder="Buscar en historial (nombre, código o destino)..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
+                            <input type="text" id="hist-search-input" oninput="renderHistoryTable()" placeholder="Buscar en historial..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
                         </div>
-
                         <div class="table-container">
                             <table class="w-full bg-white rounded-xl shadow-sm text-xs">
                                 <thead class="bg-gray-50 border-b">
@@ -319,7 +314,6 @@
                         </div>
                     </div>
 
-                    <!-- Modal Edición Planta -->
                     <div id="modal-edit-tanque" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
                         <div class="bg-white p-6 rounded-xl w-full max-w-sm shadow-2xl">
                             <h3 id="edit-tanque-title" class="text-lg font-bold text-indigo-600 mb-4">Editar Planta</h3>
@@ -388,7 +382,7 @@
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                                 <i data-lucide="search" class="w-4 h-4"></i>
                             </span>
-                            <input type="text" id="pl-hist-search" oninput="renderPlantsHistoryTable()" placeholder="Buscar en historial de planta..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
+                            <input type="text" id="pl-hist-search" oninput="renderPlantsHistoryTable()" placeholder="Buscar en historial..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
                         </div>
                         <div class="table-container">
                             <table class="w-full bg-white rounded-xl shadow-sm text-xs">
@@ -425,7 +419,6 @@
                             <button onclick="createUser()" class="bg-green-600 text-white p-3 rounded-lg font-bold">Crear Cuenta</button>
                         </div>
                     </div>
-
                     <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
                         <table class="w-full text-left text-sm">
                             <thead class="bg-gray-50">
@@ -439,7 +432,6 @@
                         </table>
                     </div>
                 </section>
-
             </div>
         </main>
     </div>
@@ -476,10 +468,8 @@ const firebaseConfig = {
         const getPublicPath = (col) => collection(db, 'artifacts', appId, 'public', 'data', col);
         const getUsersPath = () => collection(db, 'artifacts', appId, 'public', 'data', 'app_users');
 
-        // Helper para refrescar iconos
         const refreshIcons = () => { if (typeof lucide !== 'undefined') lucide.createIcons(); };
 
-        // Navegación Global
         window.navigate = (modId) => {
             ['inventario', 'plantas', 'usuarios'].forEach(s => {
                 const el = document.getElementById(`mod-${s}`);
@@ -498,17 +488,12 @@ const firebaseConfig = {
             const sb = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
             const icon = document.getElementById('toggle-icon-desktop');
-
             if (window.innerWidth < 768) {
                 sb.classList.toggle('mobile-open');
                 overlay.classList.toggle('active');
             } else {
                 sb.classList.toggle('sidebar-collapsed');
-                if (sb.classList.contains('sidebar-collapsed')) {
-                    if(icon) icon.style.transform = 'rotate(180deg)';
-                } else {
-                    if(icon) icon.style.transform = 'rotate(0deg)';
-                }
+                if (icon) icon.style.transform = sb.classList.contains('sidebar-collapsed') ? 'rotate(180deg)' : 'rotate(0deg)';
             }
         };
 
@@ -516,7 +501,6 @@ const firebaseConfig = {
             const userIn = document.getElementById('login-user').value;
             const passIn = document.getElementById('login-pass').value;
             const found = localUsers.find(u => u.username === userIn && u.pass === passIn);
-
             if (found) {
                 currentUser = found;
                 document.getElementById('login-screen').classList.add('hidden');
@@ -546,7 +530,6 @@ const firebaseConfig = {
             const container = el.parentElement;
             container.querySelectorAll('.submodule').forEach(s => s.classList.add('hidden'));
             el.classList.remove('hidden');
-            
             const tabs = container.querySelector('.flex.space-x-2');
             if (tabs) {
                 tabs.querySelectorAll('button').forEach(b => {
@@ -559,7 +542,7 @@ const firebaseConfig = {
             refreshIcons();
         };
 
-        // Inventario Logic
+        // Inventario Actions
         window.saveItem = async () => {
             if (!authenticatedUser) return;
             const btn = event.target;
@@ -572,40 +555,49 @@ const firebaseConfig = {
                 qty: parseInt(document.getElementById('inv-qty').value),
                 dept: document.getElementById('inv-dept').value
             };
-            if (!data.code || isNaN(data.qty)) {
-                btn.disabled = false;
-                return;
-            }
-            
+            if (!data.code || isNaN(data.qty)) { btn.disabled = false; return; }
             try {
                 await setDoc(doc(getPublicPath('inventario'), data.code), data);
-                await addDoc(getPublicPath('inv_history'), {
-                    timestamp: Date.now(), action: 'INGRESO', code: data.code, qty: data.qty, extra: `Depto: ${data.dept}`
-                });
+                await addDoc(getPublicPath('inv_history'), { timestamp: Date.now(), action: 'INGRESO', code: data.code, qty: data.qty, extra: `Depto: ${data.dept}` });
                 alert('Guardado exitosamente');
                 document.querySelectorAll('#inv-add input').forEach(i => i.value = '');
             } catch (e) { console.error(e); }
             btn.disabled = false;
         };
 
+        window.withdrawItem = async () => {
+            if (!authenticatedUser) return;
+            const code = document.getElementById('ret-code').value.trim();
+            const qty = parseInt(document.getElementById('ret-qty').value);
+            const dest = document.getElementById('ret-dest').value.trim();
+            const docRef = doc(getPublicPath('inventario'), code);
+            const snap = await getDoc(docRef);
+            if (snap.exists()) {
+                const currentQty = snap.data().qty;
+                if (currentQty >= qty) {
+                    await updateDoc(docRef, { qty: currentQty - qty });
+                    await addDoc(getPublicPath('inv_history'), { timestamp: Date.now(), action: 'RETIRO', code: code, qty: qty, extra: `Destino: ${dest}` });
+                    alert('Retiro exitoso');
+                    document.querySelectorAll('#inv-ret input').forEach(i => i.value = '');
+                } else alert('Error: Stock insuficiente');
+            } else alert('Error: Código no existe');
+        };
+
         window.openEditInv = (code) => {
             if (!currentUser || currentUser.level !== 'ADMINISTRADOR') return;
             const item = cachedInventory.find(i => i.code === code);
-            if (!item) return;
-
-            document.getElementById('edit-inv-code').value = item.code;
-            document.getElementById('edit-inv-name').value = item.name || '';
-            document.getElementById('edit-inv-brand').value = item.brand || '';
-            document.getElementById('edit-inv-type').value = item.type || '';
-            document.getElementById('edit-inv-qty').value = item.qty || 0;
-            document.getElementById('edit-inv-dept').value = item.dept || 'Cables';
-            
-            document.getElementById('modal-edit-inv').classList.remove('hidden');
+            if (item) {
+                document.getElementById('edit-inv-code').value = item.code;
+                document.getElementById('edit-inv-name').value = item.name || '';
+                document.getElementById('edit-inv-brand').value = item.brand || '';
+                document.getElementById('edit-inv-type').value = item.type || '';
+                document.getElementById('edit-inv-qty').value = item.qty || 0;
+                document.getElementById('edit-inv-dept').value = item.dept || 'Cables';
+                document.getElementById('modal-edit-inv').classList.remove('hidden');
+            }
         };
 
-        window.closeEditInv = () => {
-            document.getElementById('modal-edit-inv').classList.add('hidden');
-        };
+        window.closeEditInv = () => document.getElementById('modal-edit-inv').classList.add('hidden');
 
         window.updateInventoryItem = async () => {
             if (!currentUser || currentUser.level !== 'ADMINISTRADOR') return;
@@ -617,55 +609,12 @@ const firebaseConfig = {
                 qty: parseInt(document.getElementById('edit-inv-qty').value) || 0,
                 dept: document.getElementById('edit-inv-dept').value
             };
-
             try {
                 await updateDoc(doc(getPublicPath('inventario'), code), data);
-                await addDoc(getPublicPath('inv_history'), {
-                    timestamp: Date.now(), action: 'EDICIÓN', code: code, qty: data.qty, extra: `Modificado por Admin`
-                });
+                await addDoc(getPublicPath('inv_history'), { timestamp: Date.now(), action: 'EDICIÓN', code: code, qty: data.qty, extra: `Modificado por Admin` });
                 alert('Producto actualizado');
                 closeEditInv();
-            } catch(e) {
-                alert('Error al actualizar inventario.');
-            }
-        };
-
-        window.renderInventoryTable = () => {
-            const searchVal = document.getElementById('inv-search-input')?.value.toLowerCase() || "";
-            const body = document.getElementById('inv-table-body');
-            if(!body) return;
-            
-            const filteredItems = cachedInventory.filter(item => {
-                const nameMatch = (item.name || "").toLowerCase().includes(searchVal);
-                const codeMatch = (item.code || "").toLowerCase().includes(searchVal);
-                const brandMatch = (item.brand || "").toLowerCase().includes(searchVal);
-                return nameMatch || codeMatch || brandMatch;
-            });
-
-            body.innerHTML = filteredItems.map(i => {
-                const canEdit = currentUser && currentUser.level === 'ADMINISTRADOR';
-                return `<tr class="hover:bg-indigo-50/30 transition">
-                    <td class="p-4 font-mono font-bold text-indigo-700">${i.code}</td>
-                    <td class="p-4">
-                        <div class="font-bold text-gray-800">${i.name}</div>
-                        <div class="text-[10px] text-gray-400 uppercase">${i.brand} | ${i.type}</div>
-                    </td>
-                    <td class="p-4">
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase">${i.dept || 'N/A'}</span>
-                    </td>
-                    <td class="p-4"><span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold">${i.qty}</span></td>
-                    <td class="p-4 text-center">
-                         ${canEdit ? `
-                            <button onclick="openEditInv('${i.code}')" class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-full transition">
-                                <i data-lucide="edit-3" class="w-4 h-4"></i>
-                            </button>
-                        ` : '<span class="text-gray-300 text-[10px]">—</span>'}
-                    </td>
-                </tr>`;
-            }).join('');
-            
-            if (filteredItems.length === 0) body.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">No hay resultados</td></tr>`;
-            refreshIcons();
+            } catch(e) { alert('Error al actualizar inventario.'); }
         };
 
         window.deleteInvHistory = async (id) => {
@@ -674,72 +623,54 @@ const firebaseConfig = {
             }
         };
 
+        // Renders
+        window.renderInventoryTable = () => {
+            const searchVal = document.getElementById('inv-search-input')?.value.toLowerCase() || "";
+            const body = document.getElementById('inv-table-body');
+            if(!body) return;
+            const filteredItems = cachedInventory.filter(item => (item.name || "").toLowerCase().includes(searchVal) || (item.code || "").toLowerCase().includes(searchVal) || (item.brand || "").toLowerCase().includes(searchVal));
+            body.innerHTML = filteredItems.map(i => `<tr class="hover:bg-indigo-50/30 transition">
+                <td class="p-4 font-mono font-bold text-indigo-700">${i.code}</td>
+                <td class="p-4">
+                    <div class="font-bold text-gray-800">${i.name}</div>
+                    <div class="text-[10px] text-gray-400 uppercase">${i.brand} | ${i.type}</div>
+                </td>
+                <td class="p-4"><span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase">${i.dept || 'N/A'}</span></td>
+                <td class="p-4"><span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold">${i.qty}</span></td>
+                <td class="p-4 text-center">
+                     ${currentUser?.level === 'ADMINISTRADOR' ? `<button onclick="openEditInv('${i.code}')" class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-full transition"><i data-lucide="edit-3" class="w-4 h-4"></i></button>` : '<span class="text-gray-300">—</span>'}
+                </td>
+            </tr>`).join('');
+            if (!filteredItems.length) body.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">No hay resultados</td></tr>';
+            refreshIcons();
+        };
+
         window.renderHistoryTable = () => {
             const searchVal = document.getElementById('hist-search-input')?.value.toLowerCase() || "";
             const body = document.getElementById('inv-hist-body');
             if (!body) return;
-
-            const enrichedHistory = cachedHistory.map(h => {
+            const filteredHistory = cachedHistory.map(h => {
                 const item = cachedInventory.find(inv => inv.code === h.code);
                 return { ...h, itemName: item ? item.name : 'Artículo no identificado' };
-            });
+            }).filter(h => (h.code || "").toLowerCase().includes(searchVal) || (h.itemName || "").toLowerCase().includes(searchVal) || (h.extra || "").toLowerCase().includes(searchVal));
 
-            const filteredHistory = enrichedHistory.filter(h => {
-                const codeMatch = (h.code || "").toLowerCase().includes(searchVal);
-                const nameMatch = (h.itemName || "").toLowerCase().includes(searchVal);
-                const extraMatch = (h.extra || "").toLowerCase().includes(searchVal);
-                return codeMatch || nameMatch || extraMatch;
-            });
-
-            body.innerHTML = filteredHistory.map(h => `
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="p-3 text-[10px] text-gray-500">${new Date(h.timestamp).toLocaleDateString()}</td>
-                    <td class="p-3">
-                        <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${h.action === 'INGRESO' ? 'bg-green-100 text-green-700' : h.action === 'RETIRO' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">
-                            ${h.action}
-                        </span>
-                    </td>
-                    <td class="p-3 font-mono font-bold text-gray-600">${h.code}</td>
-                    <td class="p-3 font-medium text-gray-800">${h.itemName}</td>
-                    <td class="p-3 font-bold text-gray-900">${h.qty}</td>
-                    <td class="p-3 text-gray-500 italic text-[10px]">${h.extra || '—'}</td>
-                    <td class="p-3 text-center">
-                        ${currentUser?.level === 'ADMINISTRADOR' ? `<button onclick="deleteInvHistory('${h.id}')" class="text-red-400 hover:text-red-600 transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : '—'}
-                    </td>
-                </tr>
-            `).join('');
-            refreshIcons();
+            body.innerHTML = filteredHistory.map(h => `<tr class="hover:bg-gray-50 transition">
+                <td class="p-3 text-[10px] text-gray-500">${new Date(h.timestamp).toLocaleDateString()}</td>
+                <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${h.action === 'INGRESO' ? 'bg-green-100 text-green-700' : h.action === 'RETIRO' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${h.action}</span></td>
+                <td class="p-3 font-mono font-bold text-gray-600">${h.code}</td>
+                <td class="p-3 font-medium text-gray-800">${h.itemName}</td>
+                <td class="p-3 font-bold text-gray-900">${h.qty}</td>
+                <td class="p-3 text-gray-500 italic text-[10px]">${h.extra || '—'}</td>
+                <td class="p-3 text-center">
+                    ${currentUser?.level === 'ADMINISTRADOR' ? `<button onclick="deleteInvHistory('${h.id}')" class="text-red-500 hover:bg-red-50 px-2 py-1 rounded-md font-bold text-sm transition">X</button>` : '—'}
+                </td>
+            </tr>`).join('');
         };
 
-        window.withdrawItem = async () => {
-            if (!authenticatedUser) return;
-            const code = document.getElementById('ret-code').value.trim();
-            const qty = parseInt(document.getElementById('ret-qty').value);
-            const dest = document.getElementById('ret-dest').value.trim();
-            
-            const docRef = doc(getPublicPath('inventario'), code);
-            const snap = await getDoc(docRef);
-            
-            if (snap.exists()) {
-                const currentQty = snap.data().qty;
-                if (currentQty >= qty) {
-                    await updateDoc(docRef, { qty: currentQty - qty });
-                    await addDoc(getPublicPath('inv_history'), {
-                        timestamp: Date.now(), action: 'RETIRO', code: code, qty: qty, extra: `Destino: ${dest}`
-                    });
-                    alert('Retiro exitoso');
-                    document.querySelectorAll('#inv-ret input').forEach(i => i.value = '');
-                } else alert('Error: Stock insuficiente');
-            } else alert('Error: Código no existe');
-        };
-
-        // Plantas Logic
+        // Plantas Actions
         window.createNewPlant = async () => {
             const name = document.getElementById('pl-name-new').value.trim();
-            if (!name) return;
-            await setDoc(doc(getPublicPath('plantas'), name), { name, tanque: 0, reserva: 0 });
-            document.getElementById('pl-name-new').value = '';
-            alert('Planta registrada');
+            if (name) { await setDoc(doc(getPublicPath('plantas'), name), { name, tanque: 0, reserva: 0 }); document.getElementById('pl-name-new').value = ''; alert('Planta registrada'); }
         };
 
         window.openEditTanque = (id, currentT, currentR) => {
@@ -758,14 +689,11 @@ const firebaseConfig = {
             const t = parseFloat(document.getElementById('edit-tanque-val').value) || 0;
             const r = parseFloat(document.getElementById('edit-reserva-val').value) || 0;
             if (!newName || !currentEditPlantId) return;
-
             try {
                 if (newName !== currentEditPlantId) {
                     await setDoc(doc(getPublicPath('plantas'), newName), { name: newName, tanque: t, reserva: r });
                     await deleteDoc(doc(getPublicPath('plantas'), currentEditPlantId));
-                } else {
-                    await updateDoc(doc(getPublicPath('plantas'), currentEditPlantId), { tanque: t, reserva: r });
-                }
+                } else await updateDoc(doc(getPublicPath('plantas'), currentEditPlantId), { tanque: t, reserva: r });
                 alert('Planta actualizada');
                 closeEditTanque();
             } catch(e) { console.error(e); }
@@ -775,34 +703,11 @@ const firebaseConfig = {
             const name = document.getElementById('pl-select-reg').value;
             const gas = parseFloat(document.getElementById('pl-gas').value) || 0;
             const hrs = parseFloat(document.getElementById('pl-hrs').value) || 0;
-            if (!name) return;
-            await addDoc(getPublicPath('plantas_logs'), {
-                plantName: name, gas, hrs, timestamp: Date.now(), dateStr: new Date().toISOString().split('T')[0]
-            });
-            alert('Lectura guardada');
-            document.getElementById('pl-gas').value = '';
-            document.getElementById('pl-hrs').value = '';
-        };
-
-        window.renderPlantsTable = () => {
-            const search = document.getElementById('pl-status-search')?.value.toLowerCase() || "";
-            const statusBody = document.getElementById('pl-status-body');
-            if(!statusBody) return;
-            
-            const filtered = cachedPlantas.filter(p => p.name.toLowerCase().includes(search));
-
-            statusBody.innerHTML = filtered.map(p => {
-                const canEdit = currentUser && (currentUser.level === 'ADMINISTRADOR' || currentUser.level === 'MONITOREO');
-                return `<tr>
-                    <td class="p-4 font-bold text-indigo-900">${p.name}</td>
-                    <td class="p-4"><span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-mono font-bold border border-blue-100">${p.tanque || 0} L</span></td>
-                    <td class="p-4"><span class="bg-orange-50 text-orange-700 px-3 py-1 rounded-lg font-mono font-bold border border-orange-100">${p.reserva || 0} L</span></td>
-                    <td class="p-4 text-center">
-                        ${canEdit ? `<button onclick="openEditTanque('${p.name}', ${p.tanque}, ${p.reserva})" class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-full transition"><i data-lucide="edit-3" class="w-4 h-4"></i></button>` : '<span class="text-gray-400 text-[10px]">Lectura</span>'}
-                    </td>
-                </tr>`;
-            }).join('');
-            refreshIcons();
+            if (name) {
+                await addDoc(getPublicPath('plantas_logs'), { plantName: name, gas, hrs, timestamp: Date.now(), dateStr: new Date().toISOString().split('T')[0] });
+                alert('Lectura guardada');
+                document.getElementById('pl-gas').value = ''; document.getElementById('pl-hrs').value = '';
+            }
         };
 
         window.deletePlantLog = async (id) => {
@@ -811,128 +716,88 @@ const firebaseConfig = {
             }
         };
 
+        window.renderPlantsTable = () => {
+            const search = document.getElementById('pl-status-search')?.value.toLowerCase() || "";
+            const body = document.getElementById('pl-status-body');
+            if(!body) return;
+            const filtered = cachedPlantas.filter(p => p.name.toLowerCase().includes(search));
+            body.innerHTML = filtered.map(p => `<tr>
+                <td class="p-4 font-bold text-indigo-900">${p.name}</td>
+                <td class="p-4"><span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-mono font-bold border border-blue-100">${p.tanque || 0} L</span></td>
+                <td class="p-4"><span class="bg-orange-50 text-orange-700 px-3 py-1 rounded-lg font-mono font-bold border border-orange-100">${p.reserva || 0} L</span></td>
+                <td class="p-4 text-center">
+                    ${currentUser && (currentUser.level === 'ADMINISTRADOR' || currentUser.level === 'MONITOREO') ? `<button onclick="openEditTanque('${p.name}', ${p.tanque}, ${p.reserva})" class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-full transition"><i data-lucide="edit-3" class="w-4 h-4"></i></button>` : '—'}
+                </td>
+            </tr>`).join('');
+            refreshIcons();
+        };
+
         window.renderPlantsHistoryTable = () => {
             const search = document.getElementById('pl-hist-search')?.value.toLowerCase() || "";
             const body = document.getElementById('pl-hist-body');
             if(!body) return;
-
             const filtered = cachedPlantLogs.filter(l => l.plantName.toLowerCase().includes(search));
-
             body.innerHTML = filtered.map(l => `<tr>
                 <td class="p-3 text-[10px] text-gray-500">${l.dateStr}</td>
                 <td class="p-3 font-bold text-indigo-800">${l.plantName}</td>
                 <td class="p-3 font-bold text-green-700">${l.gas} L</td>
                 <td class="p-3 font-mono font-bold text-indigo-600">${l.hrs} hrs</td>
                 <td class="p-3 text-center">
-                    ${currentUser?.level === 'ADMINISTRADOR' ? `<button onclick="deletePlantLog('${l.id}')" class="text-red-400 hover:text-red-600 transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : '—'}
+                    ${currentUser?.level === 'ADMINISTRADOR' ? `<button onclick="deletePlantLog('${l.id}')" class="text-red-500 hover:bg-red-50 px-2 py-1 rounded-md font-bold text-sm transition">X</button>` : '—'}
                 </td>
             </tr>`).join('');
-            refreshIcons();
         };
 
-        window.renderPlantsList = async () => {
+        window.renderPlantsList = () => {
             const from = document.getElementById('filter-from').value;
             const to = document.getElementById('filter-to').value;
             const body = document.getElementById('pl-table-body');
             if(!body) return;
-
             body.innerHTML = cachedPlantas.map(p => {
-                const pLogs = cachedPlantLogs.filter(l => {
-                    const matchName = l.plantName === p.name;
-                    const matchF = from ? l.dateStr >= from : true;
-                    const matchT = to ? l.dateStr <= to : true;
-                    return matchName && matchF && matchT;
-                });
-                const totalGas = pLogs.reduce((acc, curr) => acc + curr.gas, 0);
-                const totalHrs = pLogs.reduce((acc, curr) => acc + curr.hrs, 0);
+                const logs = cachedPlantLogs.filter(l => l.plantName === p.name && (from ? l.dateStr >= from : true) && (to ? l.dateStr <= to : true));
                 return `<tr class="border-b">
                     <td class="p-4 font-bold text-gray-700">${p.name}</td>
-                    <td class="p-4 text-green-600 font-bold">${totalGas}</td>
-                    <td class="p-4 text-indigo-600 font-bold">${totalHrs}</td>
+                    <td class="p-4 text-green-600 font-bold">${logs.reduce((acc, curr) => acc + curr.gas, 0)}</td>
+                    <td class="p-4 text-indigo-600 font-bold">${logs.reduce((acc, curr) => acc + curr.hrs, 0)}</td>
                 </tr>`;
             }).join('');
         };
 
         // Users Logic
         window.createUser = async () => {
-            const fn = document.getElementById('user-fullname').value;
-            const un = document.getElementById('user-name').value;
-            const ps = document.getElementById('user-pass').value;
-            const lv = document.getElementById('user-level').value;
-            if (!fn || !un || !ps) return;
-            await addDoc(getUsersPath(), { fullname: fn, username: un, pass: ps, level: lv });
-            alert('Usuario creado');
-            document.querySelectorAll('#mod-usuarios input').forEach(i => i.value = '');
+            const fn = document.getElementById('user-fullname').value, un = document.getElementById('user-name').value, ps = document.getElementById('user-pass').value, lv = document.getElementById('user-level').value;
+            if (fn && un && ps) { await addDoc(getUsersPath(), { fullname: fn, username: un, pass: ps, level: lv }); alert('Usuario creado'); document.querySelectorAll('#mod-usuarios input').forEach(i => i.value = ''); }
         };
 
         window.deleteUser = async (id) => { if (confirm('¿Eliminar usuario?')) await deleteDoc(doc(getUsersPath(), id)); };
 
         function applyPermissions(level) {
-            if (level === 'ADMINISTRADOR') {
-                document.getElementById('nav-usuarios')?.classList.remove('hidden');
-                document.getElementById('btn-pl-add')?.classList.remove('hidden');
-            }
-            if (level === 'OBSERVADOR') {
-                ['btn-inv-add', 'btn-inv-ret', 'btn-pl-reg'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
-            }
+            if (level === 'ADMINISTRADOR') { document.getElementById('nav-usuarios')?.classList.remove('hidden'); document.getElementById('btn-pl-add')?.classList.remove('hidden'); }
+            if (level === 'OBSERVADOR') ['btn-inv-add', 'btn-inv-ret', 'btn-pl-reg'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
         }
 
         // Listeners
         function startSync(user) {
             authenticatedUser = user;
             document.getElementById('connection-status').classList.replace('bg-connection-fail', 'bg-connection-ok');
-
             onSnapshot(getUsersPath(), (snap) => {
                 localUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                if (!localUsers.find(u => u.username === 'Admin')) {
-                    setDoc(doc(getUsersPath(), 'adm_root'), { fullname: 'Master Root', username: 'Admin', pass: 'admin1', level: 'ADMINISTRADOR' });
-                }
+                if (!localUsers.find(u => u.username === 'Admin')) setDoc(doc(getUsersPath(), 'adm_root'), { fullname: 'Master Root', username: 'Admin', pass: 'admin1', level: 'ADMINISTRADOR' });
                 const body = document.getElementById('users-table-body');
-                if (body) {
-                    body.innerHTML = localUsers.map(u => `<tr>
-                        <td class="p-4 text-xs font-bold">${u.username}</td>
-                        <td class="p-4 text-xs">${u.level}</td>
-                        <td class="p-4 text-right">${u.username !== 'Admin' ? `<button onclick="deleteUser('${u.id}')" class="text-red-500">Eliminar</button>` : ''}</td>
-                    </tr>`).join('');
-                }
+                if (body) body.innerHTML = localUsers.map(u => `<tr><td class="p-4 text-xs font-bold">${u.username}</td><td class="p-4 text-xs">${u.level}</td><td class="p-4 text-right">${u.username !== 'Admin' ? `<button onclick="deleteUser('${u.id}')" class="text-red-500">Eliminar</button>` : ''}</td></tr>`).join('');
             });
-
-            onSnapshot(getPublicPath('inventario'), (snap) => {
-                cachedInventory = snap.docs.map(d => d.data());
-                renderInventoryTable();
-                renderHistoryTable();
-            });
-
-            onSnapshot(getPublicPath('inv_history'), (snap) => {
-                cachedHistory = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp);
-                renderHistoryTable();
-            });
-
-            onSnapshot(getPublicPath('plantas'), (snap) => {
-                cachedPlantas = snap.docs.map(d => d.data());
-                const selReg = document.getElementById('pl-select-reg');
-                if (selReg) selReg.innerHTML = cachedPlantas.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
-                renderPlantsTable();
-                renderPlantsList();
-            });
-
-            onSnapshot(getPublicPath('plantas_logs'), (snap) => {
-                cachedPlantLogs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp);
-                renderPlantsHistoryTable();
-                renderPlantsList();
-            });
+            onSnapshot(getPublicPath('inventario'), (snap) => { cachedInventory = snap.docs.map(d => d.data()); renderInventoryTable(); renderHistoryTable(); });
+            onSnapshot(getPublicPath('inv_history'), (snap) => { cachedHistory = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp); renderHistoryTable(); });
+            onSnapshot(getPublicPath('plantas'), (snap) => { cachedPlantas = snap.docs.map(d => d.data()); const selReg = document.getElementById('pl-select-reg'); if (selReg) selReg.innerHTML = cachedPlantas.map(p => `<option value="${p.name}">${p.name}</option>`).join(''); renderPlantsTable(); renderPlantsList(); });
+            onSnapshot(getPublicPath('plantas_logs'), (snap) => { cachedPlantLogs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp); renderPlantsHistoryTable(); renderPlantsList(); });
         }
 
-        // Init
         window.addEventListener('load', async () => {
             refreshIcons();
-            onAuthStateChanged(auth, (user) => { if (user) startSync(user); });
+            onAuthStateChanged(auth, (u) => { if (u) startSync(u); });
             try {
-                if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) {
-                    await signInWithCustomToken(auth, window.__initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) await signInWithCustomToken(auth, window.__initial_auth_token);
+                else await signInAnonymously(auth);
             } catch (err) { console.error("Auth fail", err); }
         });
     </script>
