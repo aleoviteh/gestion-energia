@@ -77,7 +77,7 @@
 
     <!-- Login Overlay -->
     <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 px-4">
-        <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-sm">
+        <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-sm:max-w-full w-full max-w-sm">
             <div class="text-center mb-6">
                 <h1 class="text-2xl font-bold text-indigo-600">GERENCIA ENERGÍA</h1>
                 <div class="mt-4 flex justify-center">
@@ -164,7 +164,6 @@
                     </div>
 
                     <div id="inv-list" class="submodule space-y-4">
-                        <!-- Barra de Búsqueda Lista -->
                         <div class="relative w-full max-w-md">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                                 <i data-lucide="search" class="w-4 h-4"></i>
@@ -188,7 +187,6 @@
                         </div>
                     </div>
 
-                    <!-- Modal Edición Inventario -->
                     <div id="modal-edit-inv" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
                         <div class="bg-white p-6 rounded-xl w-full max-w-sm shadow-2xl">
                             <h3 class="text-lg font-bold text-indigo-600 mb-4">Editar Producto</h3>
@@ -218,7 +216,6 @@
                                         <select id="edit-inv-dept" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
                                             <option value="Cables">Cables</option>
                                             <option value="Energía">Energía</option>
-                                            <option value="Ferreteria">Ferreteria</option>
                                             <option value="Redes">Redes</option>
                                             <option value="Plantas">Plantas</option>
                                         </select>
@@ -245,7 +242,6 @@
                             <select id="inv-dept" class="p-3 border rounded-lg bg-gray-50">
                                 <option value="Cables">Cables</option>
                                 <option value="Energía">Energía</option>
-                                <option value="Ferreteria">Ferreteria</option>
                                 <option value="Redes">Redes</option>
                                 <option value="Plantas">Plantas</option>
                             </select>
@@ -265,7 +261,6 @@
                     </div>
 
                     <div id="inv-hist" class="submodule hidden space-y-4">
-                        <!-- Barra de Búsqueda Historial -->
                         <div class="relative w-full max-w-md">
                             <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
                                 <i data-lucide="search" class="w-4 h-4"></i>
@@ -283,6 +278,7 @@
                                         <th class="p-3 text-left font-bold text-gray-600">Artículo</th>
                                         <th class="p-3 text-left font-bold text-gray-600">Cant</th>
                                         <th class="p-3 text-left font-bold text-gray-600">Detalle/Destino</th>
+                                        <th class="p-3 text-center font-bold text-gray-600">Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody id="inv-hist-body" class="divide-y divide-gray-100"></tbody>
@@ -301,18 +297,26 @@
                         <button onclick="showSubmodule('pl-hist')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Historial</button>
                     </div>
 
-                    <div id="pl-status" class="submodule table-container">
-                        <table class="w-full bg-white rounded-xl shadow-sm text-sm">
-                            <thead class="bg-gray-50 border-b">
-                                <tr>
-                                    <th class="p-4 text-left">Planta</th>
-                                    <th class="p-4 text-left">Tanque (L)</th>
-                                    <th class="p-4 text-left">Reserva (L)</th>
-                                    <th class="p-4 text-center">Acción</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pl-status-body" class="divide-y"></tbody>
-                        </table>
+                    <div id="pl-status" class="submodule space-y-4">
+                        <div class="relative w-full max-w-md">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                            </span>
+                            <input type="text" id="pl-status-search" oninput="renderPlantsTable()" placeholder="Buscar planta..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
+                        </div>
+                        <div class="table-container">
+                            <table class="w-full bg-white rounded-xl shadow-sm text-sm">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="p-4 text-left">Planta</th>
+                                        <th class="p-4 text-left">Tanque (L)</th>
+                                        <th class="p-4 text-left">Reserva (L)</th>
+                                        <th class="p-4 text-center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pl-status-body" class="divide-y"></tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- Modal Edición Planta -->
@@ -379,18 +383,27 @@
                         <button onclick="savePlantLog()" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-bold">Guardar Lectura</button>
                     </div>
 
-                    <div id="pl-hist" class="submodule hidden table-container">
-                        <table class="w-full bg-white rounded-xl shadow-sm text-xs">
-                            <thead class="bg-gray-50 border-b">
-                                <tr>
-                                    <th class="p-3 text-left">Fecha</th>
-                                    <th class="p-3 text-left">Planta</th>
-                                    <th class="p-3 text-left">Lts</th>
-                                    <th class="p-3 text-left">Hrs</th>
-                                </tr>
-                            </thead>
-                            <tbody id="pl-hist-body" class="divide-y divide-gray-100"></tbody>
-                        </table>
+                    <div id="pl-hist" class="submodule hidden space-y-4">
+                        <div class="relative w-full max-w-md">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                            </span>
+                            <input type="text" id="pl-hist-search" oninput="renderPlantsHistoryTable()" placeholder="Buscar en historial de planta..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
+                        </div>
+                        <div class="table-container">
+                            <table class="w-full bg-white rounded-xl shadow-sm text-xs">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="p-3 text-left">Fecha</th>
+                                        <th class="p-3 text-left">Planta</th>
+                                        <th class="p-3 text-left">Lts</th>
+                                        <th class="p-3 text-left">Hrs</th>
+                                        <th class="p-3 text-center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pl-hist-body" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
 
@@ -457,10 +470,14 @@ const firebaseConfig = {
         let currentEditPlantId = null;
         let cachedInventory = [];
         let cachedPlantas = [];
-        let cachedHistory = []; // Caché para el historial de inventario
+        let cachedHistory = []; 
+        let cachedPlantLogs = [];
         
         const getPublicPath = (col) => collection(db, 'artifacts', appId, 'public', 'data', col);
         const getUsersPath = () => collection(db, 'artifacts', appId, 'public', 'data', 'app_users');
+
+        // Helper para refrescar iconos
+        const refreshIcons = () => { if (typeof lucide !== 'undefined') lucide.createIcons(); };
 
         // Navegación Global
         window.navigate = (modId) => {
@@ -474,6 +491,7 @@ const firebaseConfig = {
                 const sb = document.getElementById('sidebar');
                 if(sb.classList.contains('mobile-open')) toggleSidebar();
             }
+            refreshIcons();
         };
 
         window.toggleSidebar = () => {
@@ -487,9 +505,9 @@ const firebaseConfig = {
             } else {
                 sb.classList.toggle('sidebar-collapsed');
                 if (sb.classList.contains('sidebar-collapsed')) {
-                    icon.style.transform = 'rotate(180deg)';
+                    if(icon) icon.style.transform = 'rotate(180deg)';
                 } else {
-                    icon.style.transform = 'rotate(0deg)';
+                    if(icon) icon.style.transform = 'rotate(0deg)';
                 }
             }
         };
@@ -508,6 +526,7 @@ const firebaseConfig = {
                 renderPlantsTable();
                 renderInventoryTable();
                 renderHistoryTable();
+                renderPlantsHistoryTable();
             } else {
                 const err = document.getElementById('login-error');
                 err.classList.remove('hidden');
@@ -537,6 +556,7 @@ const firebaseConfig = {
                 event.target.classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600');
                 event.target.classList.remove('text-gray-400');
             }
+            refreshIcons();
         };
 
         // Inventario Logic
@@ -613,8 +633,8 @@ const firebaseConfig = {
         window.renderInventoryTable = () => {
             const searchVal = document.getElementById('inv-search-input')?.value.toLowerCase() || "";
             const body = document.getElementById('inv-table-body');
+            if(!body) return;
             
-            // Filtrar la caché local
             const filteredItems = cachedInventory.filter(item => {
                 const nameMatch = (item.name || "").toLowerCase().includes(searchVal);
                 const codeMatch = (item.code || "").toLowerCase().includes(searchVal);
@@ -644,29 +664,26 @@ const firebaseConfig = {
                 </tr>`;
             }).join('');
             
-            if (filteredItems.length === 0) {
-                body.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">No se encontraron resultados para "${searchVal}"</td></tr>`;
-            }
-
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+            if (filteredItems.length === 0) body.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">No hay resultados</td></tr>`;
+            refreshIcons();
         };
 
-        // Función para renderizar el historial con búsqueda y campos adicionales
+        window.deleteInvHistory = async (id) => {
+            if (currentUser?.level === 'ADMINISTRADOR' && confirm('¿Eliminar este registro del historial?')) {
+                await deleteDoc(doc(getPublicPath('inv_history'), id));
+            }
+        };
+
         window.renderHistoryTable = () => {
             const searchVal = document.getElementById('hist-search-input')?.value.toLowerCase() || "";
             const body = document.getElementById('inv-hist-body');
             if (!body) return;
 
-            // Cruzar datos de historial con la caché de inventario para obtener nombres
             const enrichedHistory = cachedHistory.map(h => {
                 const item = cachedInventory.find(inv => inv.code === h.code);
-                return {
-                    ...h,
-                    itemName: item ? item.name : 'Artículo no identificado'
-                };
+                return { ...h, itemName: item ? item.name : 'Artículo no identificado' };
             });
 
-            // Filtrar historial
             const filteredHistory = enrichedHistory.filter(h => {
                 const codeMatch = (h.code || "").toLowerCase().includes(searchVal);
                 const nameMatch = (h.itemName || "").toLowerCase().includes(searchVal);
@@ -676,7 +693,7 @@ const firebaseConfig = {
 
             body.innerHTML = filteredHistory.map(h => `
                 <tr class="hover:bg-gray-50 transition">
-                    <td class="p-3 text-[10px] text-gray-500">${new Date(h.timestamp).toLocaleDateString()} ${new Date(h.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td>
+                    <td class="p-3 text-[10px] text-gray-500">${new Date(h.timestamp).toLocaleDateString()}</td>
                     <td class="p-3">
                         <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${h.action === 'INGRESO' ? 'bg-green-100 text-green-700' : h.action === 'RETIRO' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">
                             ${h.action}
@@ -686,12 +703,12 @@ const firebaseConfig = {
                     <td class="p-3 font-medium text-gray-800">${h.itemName}</td>
                     <td class="p-3 font-bold text-gray-900">${h.qty}</td>
                     <td class="p-3 text-gray-500 italic text-[10px]">${h.extra || '—'}</td>
+                    <td class="p-3 text-center">
+                        ${currentUser?.level === 'ADMINISTRADOR' ? `<button onclick="deleteInvHistory('${h.id}')" class="text-red-400 hover:text-red-600 transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : '—'}
+                    </td>
                 </tr>
             `).join('');
-
-            if (filteredHistory.length === 0) {
-                body.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-gray-400 italic">No hay registros que coincidan con la búsqueda</td></tr>`;
-            }
+            refreshIcons();
         };
 
         window.withdrawItem = async () => {
@@ -699,7 +716,6 @@ const firebaseConfig = {
             const code = document.getElementById('ret-code').value.trim();
             const qty = parseInt(document.getElementById('ret-qty').value);
             const dest = document.getElementById('ret-dest').value.trim();
-            const authBy = document.getElementById('ret-auth').value.trim();
             
             const docRef = doc(getPublicPath('inventario'), code);
             const snap = await getDoc(docRef);
@@ -713,7 +729,7 @@ const firebaseConfig = {
                     });
                     alert('Retiro exitoso');
                     document.querySelectorAll('#inv-ret input').forEach(i => i.value = '');
-                } else alert('Error: Stock insuficiente ('+currentQty+')');
+                } else alert('Error: Stock insuficiente');
             } else alert('Error: Código no existe');
         };
 
@@ -721,60 +737,38 @@ const firebaseConfig = {
         window.createNewPlant = async () => {
             const name = document.getElementById('pl-name-new').value.trim();
             if (!name) return;
-            await setDoc(doc(getPublicPath('plantas'), name), { 
-                name, 
-                tanque: 0, 
-                reserva: 0 
-            });
+            await setDoc(doc(getPublicPath('plantas'), name), { name, tanque: 0, reserva: 0 });
             document.getElementById('pl-name-new').value = '';
             alert('Planta registrada');
         };
 
         window.openEditTanque = (id, currentT, currentR) => {
-            if (!currentUser || (currentUser.level !== 'ADMINISTRADOR' && currentUser.level !== 'MONITOREO')) {
-                alert('No tiene permisos para editar estos valores.');
-                return;
-            }
+            if (!currentUser || (currentUser.level !== 'ADMINISTRADOR' && currentUser.level !== 'MONITOREO')) return;
             currentEditPlantId = id;
-            document.getElementById('edit-tanque-title').innerText = `Editar Planta: ${id}`;
             document.getElementById('edit-pl-name-val').value = id;
             document.getElementById('edit-tanque-val').value = currentT || 0;
             document.getElementById('edit-reserva-val').value = currentR || 0;
             document.getElementById('modal-edit-tanque').classList.remove('hidden');
         };
 
-        window.closeEditTanque = () => {
-            document.getElementById('modal-edit-tanque').classList.add('hidden');
-        };
+        window.closeEditTanque = () => document.getElementById('modal-edit-tanque').classList.add('hidden');
 
         window.updatePlantTank = async () => {
             const newName = document.getElementById('edit-pl-name-val').value.trim();
             const t = parseFloat(document.getElementById('edit-tanque-val').value) || 0;
             const r = parseFloat(document.getElementById('edit-reserva-val').value) || 0;
-            
-            if (!newName) return alert('El nombre no puede estar vacío');
-            if (!currentEditPlantId) return;
+            if (!newName || !currentEditPlantId) return;
 
             try {
                 if (newName !== currentEditPlantId) {
-                    await setDoc(doc(getPublicPath('plantas'), newName), {
-                        name: newName,
-                        tanque: t,
-                        reserva: r
-                    });
+                    await setDoc(doc(getPublicPath('plantas'), newName), { name: newName, tanque: t, reserva: r });
                     await deleteDoc(doc(getPublicPath('plantas'), currentEditPlantId));
                 } else {
-                    await updateDoc(doc(getPublicPath('plantas'), currentEditPlantId), {
-                        tanque: t,
-                        reserva: r
-                    });
+                    await updateDoc(doc(getPublicPath('plantas'), currentEditPlantId), { tanque: t, reserva: r });
                 }
-                alert('Planta actualizada correctamente');
+                alert('Planta actualizada');
                 closeEditTanque();
-            } catch(e) {
-                console.error(e);
-                alert('Error al actualizar datos.');
-            }
+            } catch(e) { console.error(e); }
         };
 
         window.savePlantLog = async () => {
@@ -791,45 +785,59 @@ const firebaseConfig = {
         };
 
         window.renderPlantsTable = () => {
+            const search = document.getElementById('pl-status-search')?.value.toLowerCase() || "";
             const statusBody = document.getElementById('pl-status-body');
-            statusBody.innerHTML = cachedPlantas.map(p => {
+            if(!statusBody) return;
+            
+            const filtered = cachedPlantas.filter(p => p.name.toLowerCase().includes(search));
+
+            statusBody.innerHTML = filtered.map(p => {
                 const canEdit = currentUser && (currentUser.level === 'ADMINISTRADOR' || currentUser.level === 'MONITOREO');
                 return `<tr>
                     <td class="p-4 font-bold text-indigo-900">${p.name}</td>
-                    <td class="p-4">
-                        <div class="flex items-center gap-2">
-                            <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-mono font-bold border border-blue-100">${p.tanque || 0} L</span>
-                        </div>
-                    </td>
-                    <td class="p-4">
-                        <div class="flex items-center gap-2">
-                            <span class="bg-orange-50 text-orange-700 px-3 py-1 rounded-lg font-mono font-bold border border-orange-100">${p.reserva || 0} L</span>
-                        </div>
-                    </td>
+                    <td class="p-4"><span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-mono font-bold border border-blue-100">${p.tanque || 0} L</span></td>
+                    <td class="p-4"><span class="bg-orange-50 text-orange-700 px-3 py-1 rounded-lg font-mono font-bold border border-orange-100">${p.reserva || 0} L</span></td>
                     <td class="p-4 text-center">
-                        ${canEdit ? `
-                            <button onclick="openEditTanque('${p.name}', ${p.tanque}, ${p.reserva})" class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-full transition">
-                                <i data-lucide="edit-3" class="w-4 h-4"></i>
-                            </button>
-                        ` : '<span class="text-gray-400 text-[10px] italic">Solo lectura</span>'}
+                        ${canEdit ? `<button onclick="openEditTanque('${p.name}', ${p.tanque}, ${p.reserva})" class="text-indigo-600 hover:bg-indigo-50 p-2 rounded-full transition"><i data-lucide="edit-3" class="w-4 h-4"></i></button>` : '<span class="text-gray-400 text-[10px]">Lectura</span>'}
                     </td>
                 </tr>`;
             }).join('');
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+            refreshIcons();
+        };
+
+        window.deletePlantLog = async (id) => {
+            if (currentUser?.level === 'ADMINISTRADOR' && confirm('¿Eliminar esta lectura del historial?')) {
+                await deleteDoc(doc(getPublicPath('plantas_logs'), id));
+            }
+        };
+
+        window.renderPlantsHistoryTable = () => {
+            const search = document.getElementById('pl-hist-search')?.value.toLowerCase() || "";
+            const body = document.getElementById('pl-hist-body');
+            if(!body) return;
+
+            const filtered = cachedPlantLogs.filter(l => l.plantName.toLowerCase().includes(search));
+
+            body.innerHTML = filtered.map(l => `<tr>
+                <td class="p-3 text-[10px] text-gray-500">${l.dateStr}</td>
+                <td class="p-3 font-bold text-indigo-800">${l.plantName}</td>
+                <td class="p-3 font-bold text-green-700">${l.gas} L</td>
+                <td class="p-3 font-mono font-bold text-indigo-600">${l.hrs} hrs</td>
+                <td class="p-3 text-center">
+                    ${currentUser?.level === 'ADMINISTRADOR' ? `<button onclick="deletePlantLog('${l.id}')" class="text-red-400 hover:text-red-600 transition"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : '—'}
+                </td>
+            </tr>`).join('');
+            refreshIcons();
         };
 
         window.renderPlantsList = async () => {
             const from = document.getElementById('filter-from').value;
             const to = document.getElementById('filter-to').value;
-            
-            const pSnap = await getDocs(getPublicPath('plantas'));
-            const lSnap = await getDocs(getPublicPath('plantas_logs'));
-            const logs = lSnap.docs.map(d => d.data());
-            
             const body = document.getElementById('pl-table-body');
-            body.innerHTML = pSnap.docs.map(doc => {
-                const p = doc.data();
-                const pLogs = logs.filter(l => {
+            if(!body) return;
+
+            body.innerHTML = cachedPlantas.map(p => {
+                const pLogs = cachedPlantLogs.filter(l => {
                     const matchName = l.plantName === p.name;
                     const matchF = from ? l.dateStr >= from : true;
                     const matchT = to ? l.dateStr <= to : true;
@@ -857,21 +865,15 @@ const firebaseConfig = {
             document.querySelectorAll('#mod-usuarios input').forEach(i => i.value = '');
         };
 
-        window.deleteUser = async (id) => {
-            if (confirm('¿Eliminar usuario?')) await deleteDoc(doc(getUsersPath(), id));
-        };
+        window.deleteUser = async (id) => { if (confirm('¿Eliminar usuario?')) await deleteDoc(doc(getUsersPath(), id)); };
 
         function applyPermissions(level) {
             if (level === 'ADMINISTRADOR') {
-                const navUsr = document.getElementById('nav-usuarios');
-                const btnPlAdd = document.getElementById('btn-pl-add');
-                if (navUsr) navUsr.classList.remove('hidden');
-                if (btnPlAdd) btnPlAdd.classList.remove('hidden');
+                document.getElementById('nav-usuarios')?.classList.remove('hidden');
+                document.getElementById('btn-pl-add')?.classList.remove('hidden');
             }
             if (level === 'OBSERVADOR') {
-                document.getElementById('btn-inv-add')?.classList.add('hidden');
-                document.getElementById('btn-inv-ret')?.classList.add('hidden');
-                document.getElementById('btn-pl-reg')?.classList.add('hidden');
+                ['btn-inv-add', 'btn-inv-ret', 'btn-pl-reg'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
             }
         }
 
@@ -880,7 +882,6 @@ const firebaseConfig = {
             authenticatedUser = user;
             document.getElementById('connection-status').classList.replace('bg-connection-fail', 'bg-connection-ok');
 
-            // Usuarios Sync
             onSnapshot(getUsersPath(), (snap) => {
                 localUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 if (!localUsers.find(u => u.username === 'Admin')) {
@@ -896,20 +897,17 @@ const firebaseConfig = {
                 }
             });
 
-            // Inventario Sync
             onSnapshot(getPublicPath('inventario'), (snap) => {
                 cachedInventory = snap.docs.map(d => d.data());
                 renderInventoryTable();
-                renderHistoryTable(); // Re-renderizar historial si el inventario cambia (para nombres actualizados)
-            });
-
-            // Historial Sync
-            onSnapshot(getPublicPath('inv_history'), (snap) => {
-                cachedHistory = snap.docs.map(d => d.data()).sort((a,b) => b.timestamp - a.timestamp);
                 renderHistoryTable();
             });
 
-            // Plantas Sync
+            onSnapshot(getPublicPath('inv_history'), (snap) => {
+                cachedHistory = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp);
+                renderHistoryTable();
+            });
+
             onSnapshot(getPublicPath('plantas'), (snap) => {
                 cachedPlantas = snap.docs.map(d => d.data());
                 const selReg = document.getElementById('pl-select-reg');
@@ -919,25 +917,16 @@ const firebaseConfig = {
             });
 
             onSnapshot(getPublicPath('plantas_logs'), (snap) => {
-                const body = document.getElementById('pl-hist-body');
-                if (body) {
-                    const list = snap.docs.map(d => d.data()).sort((a,b) => b.timestamp - a.timestamp);
-                    body.innerHTML = list.slice(0, 20).map(l => `<tr>
-                        <td class="p-3">${l.dateStr}</td>
-                        <td class="p-3 font-bold text-indigo-800">${l.plantName}</td>
-                        <td class="p-3">${l.gas}</td>
-                        <td class="p-3 font-mono">${l.hrs}</td>
-                    </tr>`).join('');
-                }
+                cachedPlantLogs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp);
+                renderPlantsHistoryTable();
+                renderPlantsList();
             });
         }
 
         // Init
         window.addEventListener('load', async () => {
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-            
+            refreshIcons();
             onAuthStateChanged(auth, (user) => { if (user) startSync(user); });
-
             try {
                 if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) {
                     await signInWithCustomToken(auth, window.__initial_auth_token);
@@ -949,4 +938,3 @@ const firebaseConfig = {
     </script>
 </body>
 </html>
-
