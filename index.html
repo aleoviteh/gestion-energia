@@ -371,6 +371,13 @@
 
                     <div id="pl-reg" class="submodule hidden space-y-4 max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg">
                         <h3 class="text-lg font-bold">Registro de Consumo</h3>
+                        
+                        <!-- Campo de fecha (solo visible para admin) -->
+                        <div id="pl-reg-date-container" class="hidden">
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">Fecha del Registro</label>
+                            <input type="date" id="pl-reg-date" class="w-full p-3 border rounded-lg bg-indigo-50 border-indigo-200 mt-1">
+                        </div>
+
                         <select id="pl-select-reg" class="w-full p-3 border rounded-lg bg-gray-50"></select>
                         <input type="number" id="pl-gas" placeholder="Gasoil Surtido (L)" class="w-full p-3 border rounded-lg">
                         <input type="number" id="pl-hrs" placeholder="Horas de Operación" class="w-full p-3 border rounded-lg">
@@ -703,10 +710,35 @@ const firebaseConfig = {
             const name = document.getElementById('pl-select-reg').value;
             const gas = parseFloat(document.getElementById('pl-gas').value) || 0;
             const hrs = parseFloat(document.getElementById('pl-hrs').value) || 0;
+            
+            // Lógica de fecha para Administrador
+            let finalTimestamp = Date.now();
+            let finalDateStr = new Date().toISOString().split('T')[0];
+            
+            if (currentUser?.level === 'ADMINISTRADOR') {
+                const customDate = document.getElementById('pl-reg-date').value;
+                if (customDate) {
+                    finalDateStr = customDate;
+                    // Ajustar timestamp a mediodía de la fecha elegida para evitar desfases de zona horaria
+                    finalTimestamp = new Date(customDate + 'T12:00:00').getTime();
+                }
+            }
+
             if (name) {
-                await addDoc(getPublicPath('plantas_logs'), { plantName: name, gas, hrs, timestamp: Date.now(), dateStr: new Date().toISOString().split('T')[0] });
+                await addDoc(getPublicPath('plantas_logs'), { 
+                    plantName: name, 
+                    gas, 
+                    hrs, 
+                    timestamp: finalTimestamp, 
+                    dateStr: finalDateStr 
+                });
                 alert('Lectura guardada');
-                document.getElementById('pl-gas').value = ''; document.getElementById('pl-hrs').value = '';
+                document.getElementById('pl-gas').value = ''; 
+                document.getElementById('pl-hrs').value = '';
+                // Limpiar fecha solo si es admin
+                if (currentUser?.level === 'ADMINISTRADOR') {
+                    document.getElementById('pl-reg-date').value = new Date().toISOString().split('T')[0];
+                }
             }
         };
 
@@ -772,7 +804,15 @@ const firebaseConfig = {
         window.deleteUser = async (id) => { if (confirm('¿Eliminar usuario?')) await deleteDoc(doc(getUsersPath(), id)); };
 
         function applyPermissions(level) {
-            if (level === 'ADMINISTRADOR') { document.getElementById('nav-usuarios')?.classList.remove('hidden'); document.getElementById('btn-pl-add')?.classList.remove('hidden'); }
+            if (level === 'ADMINISTRADOR') { 
+                document.getElementById('nav-usuarios')?.classList.remove('hidden'); 
+                document.getElementById('btn-pl-add')?.classList.remove('hidden');
+                // Habilitar selección de fecha en registro
+                document.getElementById('pl-reg-date-container')?.classList.remove('hidden');
+                document.getElementById('pl-reg-date').value = new Date().toISOString().split('T')[0];
+            } else {
+                document.getElementById('pl-reg-date-container')?.classList.add('hidden');
+            }
             if (level === 'OBSERVADOR') ['btn-inv-add', 'btn-inv-ret', 'btn-pl-reg'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
         }
 
