@@ -3,661 +3,453 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ministerio Ruach - Gestión</title>
+    <title>Gerencia - Sistema de Gestión</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/lucide.min.js"></script>
     <style>
-        :root {
-            --bg-dark: #0f0f0f;
-            --silver-gradient: linear-gradient(145deg, #c0c0c0, #7a7a7a);
-            --accent-silver: #e0e0e0;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow-x: hidden;
-        }
-
-        .silver-text {
-            background: var(--silver-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .glass-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-        }
-
-        .sidebar {
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 110;
-        }
-
-        .sidebar.closed {
-            transform: translateX(-100%);
-        }
-
-        .menu-toggle-btn {
-            z-index: 120;
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 2px;
-        }
-
-        .calendar-day {
-            aspect-ratio: 1 / 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: background 0.2s;
-            border-radius: 8px;
-            position: relative;
-        }
-
-        .calendar-day:hover {
-            background: rgba(192, 192, 192, 0.2);
-        }
-
-        .calendar-day.has-event {
-            border: 1px solid rgba(192, 192, 192, 0.3);
-        }
-
-        .event-indicator {
-            width: 4px;
-            height: 4px;
-            background: silver;
-            border-radius: 50%;
-            margin-top: 2px;
-        }
-
-        .active-section {
-            display: block !important;
-        }
-
-        .hidden-section {
-            display: none !important;
-        }
-
-        input, select, textarea {
-            background: #1a1a1a !important;
-            border: 1px solid #333 !important;
-            color: white !important;
-            border-radius: 8px !important;
-            padding: 10px !important;
-        }
-
-        .btn-silver {
-            background: var(--silver-gradient);
-            color: black;
-            font-weight: bold;
-            transition: opacity 0.2s;
-        }
-
-        .btn-silver:hover {
-            opacity: 0.8;
-        }
+        /* Transiciones suaves para la barra lateral */
+        .sidebar-transition { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         
-        .logo-img {
-            max-width: 180px;
-            filter: drop-shadow(0 0 10px rgba(192,192,192,0.3));
+        /* Estado Colapsado (Desktop) */
+        @media (min-width: 768px) {
+            .sidebar-collapsed { width: 5rem !important; }
+            .sidebar-collapsed .nav-text, .sidebar-collapsed .logo-text { display: none; }
+            .sidebar-collapsed .nav-item { justify-content: center; padding-left: 0; padding-right: 0; }
+            .sidebar-collapsed .nav-item i { margin-right: 0; }
         }
 
-        main {
-            transition: margin-left 0.3s ease;
-        }
-
-        .modal-overlay {
-            background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(8px);
-        }
-
-        /* Finanzas Styles */
-        .finance-table input {
-            width: 70px;
-            text-align: center;
-            font-size: 0.75rem;
-            padding: 4px !important;
-            border: 1px solid rgba(255,255,255,0.05) !important;
-            background: transparent !important;
-        }
-        .finance-table input:focus {
-            background: rgba(255, 255, 255, 0.1) !important;
-            outline: none;
-        }
-        .sticky-col {
-            position: sticky;
-            left: 0;
-            background: #1a1a1a;
-            z-index: 10;
-            min-width: 120px;
-        }
-
-        /* Galeria Styles */
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-        .gallery-item {
-            position: relative;
-            overflow: hidden;
-            border-radius: 10px;
-            aspect-ratio: 1;
-        }
-        .gallery-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-        }
-        .gallery-item:hover img {
-            transform: scale(1.1);
-        }
-        .gallery-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 10px;
-        }
-        .gallery-item:hover .gallery-overlay {
-            opacity: 1;
-        }
-
-        #song-image-viewer {
-            padding: 0;
-        }
-        #song-image-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: auto;
-        }
-        #song-image-viewer img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            transition: transform 0.2s ease;
-        }
-        
-        @media (max-width: 768px) {
-            #song-image-viewer img {
-                width: 100vw;
+        /* Comportamiento Móvil (Android/iOS) */
+        @media (max-width: 767px) {
+            #sidebar {
+                position: fixed;
+                z-index: 40;
                 height: 100vh;
-                object-fit: contain; 
-                border-radius: 0;
+                left: -100%;
             }
-            #song-image-title {
+            #sidebar.mobile-open {
+                left: 0;
+                width: 80%;
+            }
+            .overlay {
                 display: none;
-            }
-            .close-viewer-btn {
-                top: 0.5rem !important;
-                right: 0.5rem !important;
+                position: fixed;
+                inset: 0;
                 background: rgba(0,0,0,0.5);
-                border-radius: 50%;
-                width: 44px;
-                height: 44px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border: 1px solid rgba(255,255,255,0.2);
+                z-index: 30;
             }
+            .overlay.active { display: block; }
         }
 
-        .search-container {
-            position: relative;
-            transition: all 0.3s ease;
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .bg-connection-ok { background-color: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .bg-connection-fail { background-color: #ef4444; box-shadow: 0 0 8px #ef4444; }
+
+        .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        .search-container i {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #666;
-        }
-        .search-container input {
-            padding-left: 35px !important;
-        }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
-<body>
+<body class="bg-gray-50 font-sans text-gray-900 overflow-x-hidden">
 
-    <!-- Pantalla de Login -->
-    <div id="login-screen" class="min-h-screen flex items-center justify-center p-6">
-        <div class="glass-panel p-8 w-full max-w-md text-center">
-            <img src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=300&auto=format&fit=crop" alt="Ruach Logo Placeholder" class="logo-img mx-auto mb-6 rounded-lg opacity-80 border border-silver">
-            <h1 class="text-3xl font-bold silver-text mb-2">MINISTERIO RUACH</h1>
-            <p class="text-gray-400 mb-8">Gestión Organizacional</p>
-            
-            <div class="space-y-4">
-                <input type="text" id="login-user" placeholder="Usuario" class="w-full">
-                <input type="password" id="login-pass" placeholder="Contraseña" class="w-full">
-                <button id="login-btn" onclick="handleLogin()" class="w-full btn-silver p-3 rounded-lg mt-4 font-bold">INGRESAR</button>
-            </div>
-            <p id="login-error" class="text-red-500 mt-4 text-sm hidden">Credenciales incorrectas.</p>
+    <!-- Overlay para móvil -->
+    <div id="sidebar-overlay" class="overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Pantalla de Despedida -->
+    <div id="logout-screen" class="fixed inset-0 z-[100] hidden bg-white flex flex-col items-center justify-center text-center fade-in px-4">
+        <div class="bg-indigo-50 p-6 rounded-full mb-6 text-indigo-600">
+            <i data-lucide="heart" class="w-16 h-16 fill-current"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">¡Hasta pronto!</h2>
+        <p class="text-gray-600">Gracias por utilizar nuestros servicios</p>
+        <div class="mt-8">
+            <div class="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
         </div>
     </div>
 
-    <!-- App Principal -->
-    <div id="app-container" class="hidden-section">
-        
-        <!-- Botón de Menú Persistente -->
-        <button onclick="toggleSidebar()" class="menu-toggle-btn p-2 text-2xl glass-panel px-4 rounded-lg hover:bg-white/10 transition-colors">
-            <i class="fas fa-bars"></i>
-        </button>
-
-        <!-- Sidebar -->
-        <nav id="sidebar" class="sidebar fixed top-0 left-0 h-full w-64 glass-panel rounded-none border-y-0 border-l-0 closed">
-            <div class="p-6 pt-20">
-                <div class="flex items-center gap-3 mb-10">
-                    <i class="fas fa-music text-silver-text text-xl"></i>
-                    <span class="font-bold text-lg silver-text">RUACH MENU</span>
+    <!-- Login Overlay -->
+    <div id="login-screen" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 px-4">
+        <div class="bg-white p-6 md:p-8 rounded-xl shadow-2xl w-full max-sm:max-w-full w-full max-w-sm">
+            <div class="text-center mb-6">
+                <h1 class="text-2xl font-bold text-indigo-600">GERENCIA ENERGÍA</h1>
+                <div class="mt-4 flex justify-center">
+                    <div class="bg-indigo-100 p-3 rounded-full text-indigo-600">
+                        <i data-lucide="zap" class="w-8 h-8 fill-current"></i>
+                    </div>
                 </div>
-                
-                <ul class="space-y-4">
-                    <li onclick="showSection('miembros')" class="cursor-pointer hover:text-gray-300 flex items-center gap-3 p-2 border-b border-transparent hover:border-silver transition-all">
-                        <i class="fas fa-users w-6"></i> MIEMBROS
-                    </li>
-                    <li onclick="showSection('cancionero')" class="cursor-pointer hover:text-gray-300 flex items-center gap-3 p-2 border-b border-transparent hover:border-silver transition-all">
-                        <i class="fas fa-book-open w-6"></i> CANCIONERO
-                    </li>
-                    <li onclick="showSection('planificacion')" class="cursor-pointer hover:text-gray-300 flex items-center gap-3 p-2 border-b border-transparent hover:border-silver transition-all">
-                        <i class="fas fa-calendar-alt w-6"></i> PLANIFICACION
-                    </li>
-                    <li onclick="showSection('galeria')" class="cursor-pointer hover:text-gray-300 flex items-center gap-3 p-2 border-b border-transparent hover:border-silver transition-all">
-                        <i class="fas fa-images w-6"></i> GALERIA
-                    </li>
-                    <li onclick="showSection('finanzas')" class="cursor-pointer hover:text-gray-300 flex items-center gap-3 p-2 border-b border-transparent hover:border-emerald-500 transition-all text-emerald-400 font-bold">
-                        <i class="fas fa-wallet w-6"></i> FINANZAS
-                    </li>
-                    <li id="menu-ingreso" onclick="showSection('ingreso')" class="cursor-pointer hover:text-gray-300 flex items-center gap-3 p-2 border-b border-transparent hover:border-silver transition-all hidden">
-                        <i class="fas fa-plus-circle w-6 text-green-400"></i> INGRESO
-                    </li>
-                    <li id="menu-usuario" onclick="showSection('usuarios-admin')" class="cursor-pointer hover:text-gray-300 flex items-center gap-3 p-2 border-b border-transparent hover:border-silver transition-all hidden">
-                        <i class="fas fa-user-cog w-6 text-blue-400"></i> USUARIOS
-                    </li>
-                </ul>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-500">Usuario</label>
+                    <input type="text" id="login-user" class="w-full p-3 border rounded-lg mt-1 focus:ring-2 focus:ring-indigo-400 outline-none transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-gray-500">Contraseña</label>
+                    <input type="password" id="login-pass" class="w-full p-3 border rounded-lg mt-1 focus:ring-2 focus:ring-indigo-400 outline-none transition-all" placeholder="••••••••">
+                </div>
+                <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 active:scale-95 transition-all">Ingresar</button>
+            </div>
+            <p id="login-error" class="text-red-500 text-sm mt-4 hidden text-center">Credenciales incorrectas.</p>
+        </div>
+    </div>
 
-                <button onclick="handleLogout()" class="absolute bottom-10 left-6 flex items-center gap-3 text-red-400 hover:text-red-300">
-                    <i class="fas fa-sign-out-alt"></i> CERRAR SESION
+    <!-- Main Layout -->
+    <div id="main-app" class="hidden flex h-screen overflow-hidden">
+        
+        <!-- Sidebar -->
+        <aside id="sidebar" class="bg-indigo-950 text-white w-25 flex-shrink-0 sidebar-transition flex flex-col border-r border-indigo-800 shadow-xl">
+            <div class="p-5 flex items-center justify-between">
+                <span class="text-lg font-bold tracking-tighter logo-text overflow-hidden whitespace-nowrap">MENÚ</span>
+                <button onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-indigo-800 active:bg-indigo-700 transition">
+                    <i data-lucide="chevron-left" id="toggle-icon-desktop" class="w-5 h-5 hidden md:block"></i>
+                    <i data-lucide="x" class="w-6 h-6 md:hidden"></i>
                 </button>
             </div>
-        </nav>
+            
+            <nav class="flex-1 mt-4 px-3 space-y-1">
+                <button onclick="navigate('inventario')" class="nav-item w-full flex items-center p-3 rounded-xl hover:bg-indigo-800 transition text-left group">
+                    <i data-lucide="package" class="w-5 h-5 mr-3 flex-shrink-0 group-hover:scale-110 transition"></i> 
+                    <span class="nav-text text-sm font-medium">Inventario</span>
+                </button>
+                <button onclick="navigate('plantas')" class="nav-item w-full flex items-center p-3 rounded-xl hover:bg-indigo-800 transition text-left group">
+                    <i data-lucide="factory" class="w-5 h-5 mr-3 flex-shrink-0 group-hover:scale-110 transition"></i> 
+                    <span class="nav-text text-sm font-medium">Plantas</span>
+                </button>
+                <button id="nav-usuarios" onclick="navigate('usuarios')" class="nav-item w-full hidden flex items-center p-3 rounded-xl hover:bg-indigo-800 transition text-left group">
+                    <i data-lucide="users" class="w-5 h-5 mr-3 flex-shrink-0 group-hover:scale-110 transition"></i> 
+                    <span class="nav-text text-sm font-medium">Usuarios</span>
+                </button>
+            </nav>
 
-        <!-- Main Content -->
-        <main id="main-content" class="min-h-screen p-4 md:p-8 pt-20">
-            <header class="flex justify-end items-center mb-8">
-                <div class="text-right">
-                    <h2 id="current-section-title" class="text-xl font-bold silver-text uppercase tracking-widest">MIEMBROS</h2>
-                    <p id="user-display-name" class="text-xs text-gray-500"></p>
+            <div class="p-3 border-t border-indigo-900/50 mb-4">
+                <button onclick="handleLogout()" class="nav-item w-full flex items-center p-3 rounded-xl text-red-400 hover:bg-red-950/30 transition text-left group">
+                    <i data-lucide="log-out" class="w-5 h-5 mr-3 flex-shrink-0"></i> 
+                    <span class="nav-text text-sm font-medium">Salir</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="flex-1 flex flex-col overflow-hidden w-full">
+            <header class="bg-white border-b h-16 flex items-center justify-between px-4 md:px-8 shadow-sm">
+                <div class="flex items-center space-x-3">
+                    <button onclick="toggleSidebar()" class="md:hidden p-2 -ml-2">
+                        <i data-lucide="menu" class="w-6 h-6 text-indigo-600"></i>
+                    </button>
+                    <h2 id="module-title" class="text-lg font-bold text-gray-800 uppercase">Inventario</h2>
+                    <span id="connection-status" class="status-dot bg-connection-fail" title="Firebase"></span>
                 </div>
+                <div id="user-display" class="hidden md:block text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full uppercase tracking-tighter"></div>
             </header>
 
-            <!-- Sección: MIEMBROS -->
-            <section id="section-miembros" class="section-content active-section">
-                <div id="members-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-            </section>
+            <div id="content" class="flex-1 overflow-y-auto p-4 md:p-8">
+                
+                <!-- INVENTARIO -->
+                <section id="mod-inventario" class="space-y-6 fade-in">
+                    <div class="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
+                        <button onclick="showSubmodule('inv-list')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600">Lista</button>
+                        <button id="btn-inv-add" onclick="showSubmodule('inv-add')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Ingreso</button>
+                        <button id="btn-inv-ret" onclick="showSubmodule('inv-ret')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Retiro</button>
+                        <button onclick="showSubmodule('inv-hist')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Historial</button>
+                    </div>
 
-            <!-- Sección: CANCIONERO -->
-            <section id="section-cancionero" class="section-content hidden-section">
-                <div class="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
-                    <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                        <div class="search-container w-full md:w-80">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="search-song" onkeyup="renderSongbook()" placeholder="Buscar canción o autor..." class="w-full">
+                    <div id="inv-list" class="submodule space-y-4">
+                        <div class="relative w-full max-w-md">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                            </span>
+                            <input type="text" id="inv-search-input" oninput="renderInventoryTable()" placeholder="Buscar por nombre o código..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
                         </div>
-                        <select id="filter-singer" onchange="renderSongbook()" class="w-full md:w-64">
-                            <option value="all">Todos los cantantes</option>
-                            <option value="Alejandro">Alejandro</option>
-                            <option value="Alejandra">Alejandra</option>
-                            <option value="Diana">Diana</option>
-                            <option value="Mery">Mery</option>
-                            <option value="Marianny">Marianny</option>
-                            <option value="Nelly">Nelly</option>
-                            <option value="Nicole">Nicole</option>
-                        </select>
-                    </div>
-                    <span id="song-stats" class="text-xs text-gray-500 italic"></span>
-                </div>
-                <div class="overflow-x-auto glass-panel">
-                    <table class="w-full text-left">
-                        <thead class="bg-black/40 silver-text">
-                            <tr>
-                                <th class="p-4">Canción</th>
-                                <th class="p-4">Autor</th>
-                                <th class="p-4">Cantante</th>
-                                <th class="p-4">Tonalidad</th>
-                                <th class="p-4 text-center">Ver</th>
-                                <th class="p-4 actions-column hidden">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="song-list" class="divide-y divide-white/10 text-gray-300"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Sección: FINANZAS (MODIFICADO) -->
-            <section id="section-finanzas" class="section-content hidden-section">
-                <div class="grid grid-cols-1 gap-6">
-                    <!-- Tabs Finanzas -->
-                    <div class="flex gap-2 overflow-x-auto pb-2">
-                        <button onclick="switchFinanceTab('ingresos')" id="btn-tab-ingresos" class="admin-only hidden px-6 py-2 rounded-lg glass-panel text-[10px] uppercase font-bold bg-white/10">Aportes Mensuales</button>
-                        <button onclick="switchFinanceTab('compras')" id="btn-tab-compras" class="px-6 py-2 rounded-lg glass-panel text-[10px] uppercase font-bold">Registro de Compras</button>
-                        <button onclick="switchFinanceTab('resumen')" id="btn-tab-resumen" class="px-6 py-2 rounded-lg glass-panel text-[10px] uppercase font-bold">Resumen de Cuenta</button>
+                        <div class="table-container">
+                            <table class="w-full bg-white rounded-xl shadow-sm overflow-hidden text-sm">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="p-4 text-left font-bold text-gray-600">Cod</th>
+                                        <th class="p-4 text-left font-bold text-gray-600">Nombre</th>
+                                        <th class="p-4 text-left font-bold text-gray-600">Depto</th>
+                                        <th class="p-4 text-left font-bold text-gray-600">Stock</th>
+                                        <th class="p-4 text-center font-bold text-gray-600">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inv-table-body" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
                     </div>
 
-                    <!-- Contenido: Aportes (admin-only hidden) -->
-                    <div id="finance-tab-ingresos" class="finance-sub-section admin-only hidden">
-                        <div class="glass-panel p-6">
-                            <div class="flex justify-between items-center mb-6">
+                    <!-- Modal Edición Inv -->
+                    <div id="modal-edit-inv" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
+                        <div class="bg-white p-6 rounded-xl w-full max-w-sm shadow-2xl">
+                            <h3 class="text-lg font-bold text-indigo-600 mb-4">Editar Producto</h3>
+                            <div class="space-y-3">
+                                <input type="hidden" id="edit-inv-code">
                                 <div>
-                                    <h3 class="font-bold silver-text text-sm uppercase">Control de Aportes</h3>
-                                    <p class="text-[10px] text-gray-500 italic">Monto en dólares ($) editable manualmente por líderes</p>
+                                    <label class="text-[10px] font-bold text-gray-400 uppercase">Descripción</label>
+                                    <input type="text" id="edit-inv-name" class="w-full p-2 border rounded-lg text-sm">
                                 </div>
-                                <button onclick="addNewFinanceMember()" class="admin-only hidden btn-silver px-4 py-2 rounded text-[10px] uppercase">+ Añadir Miembro</button>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left finance-table border-collapse">
-                                    <thead class="text-[10px] text-gray-500 uppercase border-b border-white/10">
-                                        <tr>
-                                            <th class="p-3 sticky-col">Nombres</th>
-                                            <th class="p-3">Ene</th><th class="p-3">Feb</th><th class="p-3">Mar</th>
-                                            <th class="p-3">Abr</th><th class="p-3">May</th><th class="p-3">Jun</th>
-                                            <th class="p-3">Jul</th><th class="p-3">Ago</th><th class="p-3">Sep</th>
-                                            <th class="p-3">Oct</th><th class="p-3">Nov</th><th class="p-3">Dic</th>
-                                            <th class="p-3 admin-only hidden">Acción</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="finance-income-body" class="divide-y divide-white/5"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Contenido: Compras -->
-                    <div id="finance-tab-compras" class="finance-sub-section hidden">
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div class="lg:col-span-1 glass-panel p-6 admin-only hidden">
-                                <h3 class="font-bold silver-text text-xs uppercase mb-4">Nueva Compra / Gasto</h3>
-                                <div class="space-y-3">
-                                    <input type="date" id="purchase-date" class="w-full text-xs">
-                                    <input type="text" id="purchase-resp" placeholder="Responsable" class="w-full text-xs">
-                                    <textarea id="purchase-desc" placeholder="Descripción de la compra" class="w-full text-xs" rows="3"></textarea>
-                                    <input type="number" id="purchase-cost" placeholder="Monto ($)" class="w-full text-xs">
-                                    <button onclick="saveNewPurchase()" class="w-full btn-silver p-3 rounded uppercase text-[10px] mt-2">Registrar Gasto</button>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase">Marca</label>
+                                        <input type="text" id="edit-inv-brand" class="w-full p-2 border rounded-lg text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase">Modelo</label>
+                                        <input type="text" id="edit-inv-type" class="w-full p-2 border rounded-lg text-sm">
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="lg:col-span-2 glass-panel p-6">
-                                <h3 class="font-bold silver-text text-xs uppercase mb-4">Historial de Egresos</h3>
-                                <div class="overflow-x-auto mb-6">
-                                    <table class="w-full text-left text-[11px]">
-                                        <thead class="text-gray-500 uppercase border-b border-white/10">
-                                            <tr>
-                                                <th class="p-2">Fecha</th>
-                                                <th class="p-2">Responsable</th>
-                                                <th class="p-2">Descripción</th>
-                                                <th class="p-2 text-right">Costo ($)</th>
-                                                <th class="p-2 admin-only hidden text-center">Eliminar</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="finance-purchases-list" class="divide-y divide-white/5"></tbody>
-                                    </table>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase">Stock</label>
+                                        <input type="number" id="edit-inv-qty" class="w-full p-2 border rounded-lg text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase">Depto</label>
+                                        <select id="edit-inv-dept" class="w-full p-2 border rounded-lg text-sm bg-gray-50">
+                                            <option value="Cables">Cables</option>
+                                            <option value="Energía">Energía</option>
+                                            <option value="Ferreteria">Ferreteria</option>
+                                            <option value="Redes">Redes</option>
+                                            <option value="Plantas">Plantas</option>
+                                        </select>
+                                    </div>
                                 </div>
-
-                                <!-- Resumen de Ingresos Mensuales dentro del Historial de Compras -->
-                                <div class="border-t border-white/10 pt-4 mt-6">
-                                    <h3 class="font-bold silver-text text-xs uppercase mb-3"><i class="fas fa-chart-bar mr-2"></i>Total Ingresos Mensuales Recaudados</h3>
-                                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2 text-center" id="finance-monthly-totals-list"></div>
+                                <div class="flex gap-2 pt-3">
+                                    <button onclick="closeEditInv()" class="flex-1 bg-gray-100 p-2 rounded-lg font-bold text-sm">Cancelar</button>
+                                    <button onclick="updateInventoryItem()" class="flex-1 bg-indigo-600 text-white p-2 rounded-lg font-bold text-sm">Actualizar</button>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Contenido: Resumen -->
-                    <div id="finance-tab-resumen" class="finance-sub-section hidden">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="glass-panel p-8 text-center border-b-2 border-green-500/30">
-                                <p class="text-[10px] text-gray-500 uppercase mb-2">Ingresos (Aportes)</p>
-                                <h2 id="summary-total-in" class="text-4xl font-bold text-green-400">$0.00</h2>
+                    <div id="inv-add" class="submodule hidden space-y-4 max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-indigo-600">Registrar Entrada</h3>
+                        <div class="grid grid-cols-1 gap-4">
+                            <input type="text" id="inv-code" placeholder="Código / Serial" class="p-3 border rounded-lg outline-none">
+                            <input type="text" id="inv-name" placeholder="Descripción" class="p-3 border rounded-lg">
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" id="inv-brand" placeholder="Marca" class="p-3 border rounded-lg">
+                                <input type="text" id="inv-type" placeholder="Modelo/Tipo" class="p-3 border rounded-lg">
                             </div>
-                            <div class="glass-panel p-8 text-center border-b-2 border-red-500/30">
-                                <p class="text-[10px] text-gray-500 uppercase mb-2">Gastos (Compras)</p>
-                                <h2 id="summary-total-out" class="text-4xl font-bold text-red-400">$0.00</h2>
-                            </div>
-                            <div class="glass-panel p-8 text-center border-t-4 border-silver shadow-xl">
-                                <p class="text-[10px] text-gray-500 uppercase mb-2">Dinero Actual en Caja</p>
-                                <h2 id="summary-balance" class="text-5xl font-bold silver-text">$0.00</h2>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Sección: PLANIFICACION -->
-            <section id="section-planificacion" class="section-content hidden-section">
-                <div class="flex flex-col md:flex-row gap-8">
-                    <div class="flex-1 glass-panel p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <button onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
-                            <h3 id="calendar-month-year" class="text-xl font-bold"></h3>
-                            <button onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
-                        </div>
-                        <div class="grid grid-cols-7 text-center text-xs font-bold text-gray-500 mb-2">
-                            <div>DOM</div><div>LUN</div><div>MAR</div><div>MIE</div><div>JUE</div><div>VIE</div><div>SAB</div>
-                        </div>
-                        <div id="calendar-days" class="calendar-grid"></div>
-                    </div>
-                    <div id="day-details" class="flex-1 glass-panel p-6 border-l-4 border-silver hidden">
-                        <div class="flex justify-between items-start mb-4">
-                            <h3 id="detail-date" class="text-xl font-bold silver-text"></h3>
-                        </div>
-                        <div id="activities-container" class="space-y-6"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Sección: GALERIA -->
-            <section id="section-galeria" class="section-content hidden-section">
-                <div class="glass-panel p-6 mb-8">
-                    <div class="flex flex-col md:flex-row items-center gap-4 justify-between">
-                        <div>
-                            <h3 class="text-lg font-bold silver-text uppercase">Fotos del Ministerio</h3>
-                            <p class="text-xs text-gray-500">Comparte los mejores momentos del equipo</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <input type="file" id="gallery-upload-input" accept="image/*" class="hidden" onchange="uploadToGallery()">
-                            <button onclick="document.getElementById('gallery-upload-input').click()" class="btn-silver px-4 py-2 rounded-lg text-xs flex items-center gap-2">
-                                <i class="fas fa-upload"></i> SUBIR FOTO
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div id="gallery-container" class="gallery-grid"></div>
-            </section>
-
-            <!-- Sección: INGRESO -->
-            <section id="section-ingreso" class="section-content hidden-section">
-                <div class="glass-panel p-6 max-w-2xl mx-auto">
-                    <h3 class="text-xl font-bold mb-6 silver-text border-b border-white/10 pb-2">NUEVA ACTIVIDAD</h3>
-                    <div class="space-y-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-xs text-gray-400 block mb-1">FECHA</label>
-                                <input type="date" id="form-date" class="w-full">
-                            </div>
-                            <div>
-                                <label class="text-xs text-gray-400 block mb-1">NOMBRE ACTIVIDAD</label>
-                                <input type="text" id="form-activity" placeholder="Ej: Servicio de Domingo" class="w-full">
-                            </div>
-                        </div>
-
-                        <div class="p-4 bg-white/5 rounded-lg border border-white/10">
-                            <h4 class="text-sm font-bold mb-3"><i class="fas fa-music mr-2"></i>REPERTORIO</h4>
-                            <div id="repertorio-inputs" class="space-y-2 mb-3"></div>
-                            <button onclick="addRepertorioRow('repertorio-inputs')" class="text-xs text-silver-text hover:underline">+ Agregar otra canción</button>
-                        </div>
-
-                        <div class="p-4 bg-white/5 rounded-lg border border-white/10">
-                            <h4 class="text-sm font-bold mb-3"><i class="fas fa-users mr-2"></i>EQUIPO DE TRABAJO</h4>
-                            <div id="equipo-inputs" class="space-y-2 mb-3"></div>
-                            <button onclick="addEquipoRow('equipo-inputs')" class="text-xs text-silver-text hover:underline">+ Agregar integrante</button>
-                        </div>
-
-                        <div class="p-4 bg-white/5 rounded-lg border border-white/10">
-                            <h4 class="text-sm font-bold mb-3"><i class="fas fa-sticky-note mr-2"></i>NOTAS / OBSERVACIONES</h4>
-                            <textarea id="form-notes" rows="3" placeholder="Instrucciones adicionales para el equipo..." class="w-full resize-none text-sm"></textarea>
-                        </div>
-
-                        <button onclick="saveActivity()" class="w-full btn-silver p-3 rounded-lg mt-4 uppercase tracking-widest">Guardar Planificación</button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Sección: USUARIOS ADMIN -->
-            <section id="section-usuarios-admin" class="section-content hidden-section">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-1 glass-panel p-6">
-                        <h3 class="text-xl font-bold mb-6 silver-text">NUEVO MIEMBRO/USUARIO</h3>
-                        <div class="space-y-4">
-                            <input type="text" id="user-full-name" placeholder="Nombre Completo" class="w-full">
-                            <input type="date" id="user-birth" class="w-full">
-                            <input type="text" id="user-job" placeholder="Ocupación" class="w-full">
-                            <select id="user-role" class="w-full">
-                                <option value="MIEMBRO">Rol: MIEMBRO</option>
-                                <option value="LIDER">Rol: LIDER</option>
+                            <input type="number" id="inv-qty" placeholder="Cantidad" class="p-3 border rounded-lg">
+                            <select id="inv-dept" class="p-3 border rounded-lg bg-gray-50">
+                                <option value="Cables">Cables</option>
+                                <option value="Energía">Energía</option>
+                                <option value="Ferreteria">Ferreteria</option>
+                                <option value="Redes">Redes</option>
+                                <option value="Plantas">Plantas</option>
                             </select>
-                            <div class="space-y-1">
-                                <label class="text-[10px] text-gray-500 ml-1">FOTO DE PERFIL</label>
-                                <input type="file" id="user-photo-file" accept="image/*" class="w-full text-xs">
-                            </div>
-                            <button id="btn-save-user" onclick="saveUser()" class="w-full btn-silver p-3 rounded-lg mt-4">CREAR USUARIO</button>
+                            <button onclick="saveItem()" class="bg-indigo-600 text-white p-3 rounded-lg font-bold">Guardar</button>
                         </div>
                     </div>
-                    <div class="lg:col-span-2 glass-panel p-6">
-                        <h3 class="text-xl font-bold mb-6 silver-text">GESTIONAR LISTADO</h3>
-                        <div id="admin-user-list" class="space-y-3"></div>
+
+                    <div id="inv-ret" class="submodule hidden space-y-4 max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold text-orange-600">Registrar Retiro</h3>
+                        <div class="space-y-4">
+                            <input type="text" id="ret-code" placeholder="Código del Artículo" class="w-full p-3 border rounded-lg">
+                            <input type="number" id="ret-qty" placeholder="Cantidad" class="w-full p-3 border rounded-lg">
+                            <input type="text" id="ret-dest" placeholder="Destino / Uso" class="w-full p-3 border rounded-lg">
+                            <input type="text" id="ret-auth" placeholder="Responsable" class="w-full p-3 border rounded-lg">
+                            <button onclick="withdrawItem()" class="w-full bg-orange-600 text-white p-3 rounded-lg font-bold">Procesar</button>
+                        </div>
                     </div>
-                </div>
-            </section>
+
+                    <div id="inv-hist" class="submodule hidden space-y-4">
+                        <div class="relative w-full max-w-md">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                            </span>
+                            <input type="text" id="hist-search-input" oninput="renderHistoryTable()" placeholder="Buscar en historial..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
+                        </div>
+                        <div class="table-container">
+                            <table class="w-full bg-white rounded-xl shadow-sm text-xs">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="p-3 text-left font-bold text-gray-600">Fecha</th>
+                                        <th class="p-3 text-left font-bold text-gray-600">Mov</th>
+                                        <th class="p-3 text-left font-bold text-gray-600">Cod</th>
+                                        <th class="p-3 text-left font-bold text-gray-600">Artículo</th>
+                                        <th class="p-3 text-left font-bold text-gray-600">Cant</th>
+                                        <th class="p-3 text-left font-bold text-gray-600">Detalle/Destino</th>
+                                        <th class="p-3 text-center font-bold text-gray-600">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="inv-hist-body" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PLANTAS -->
+                <section id="mod-plantas" class="hidden space-y-6 fade-in">
+                    <div class="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
+                        <button onclick="showSubmodule('pl-status')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600">Estado</button>
+                        <button onclick="showSubmodule('pl-list')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Consumos</button>
+                        <button id="btn-pl-add" onclick="showSubmodule('pl-add')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400 hidden">Nueva</button>
+                        <button id="btn-pl-reg" onclick="showSubmodule('pl-reg')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Lectura</button>
+                        <button onclick="showSubmodule('pl-hist')" class="whitespace-nowrap px-4 py-2 text-sm font-bold text-gray-400">Historial</button>
+                    </div>
+
+                    <div id="pl-status" class="submodule space-y-4">
+                        <div class="relative w-full max-w-md">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                            </span>
+                            <input type="text" id="pl-status-search" oninput="renderPlantsTable()" placeholder="Buscar planta..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
+                        </div>
+                        <div class="table-container">
+                            <table class="w-full bg-white rounded-xl shadow-sm text-sm">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="p-4 text-left">Planta</th>
+                                        <th class="p-4 text-left">Tanque (L)</th>
+                                        <th class="p-4 text-left">Reserva (L)</th>
+                                        <th class="p-4 text-center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pl-status-body" class="divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="modal-edit-tanque" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4">
+                        <div class="bg-white p-6 rounded-xl w-full max-w-sm shadow-2xl">
+                            <h3 id="edit-tanque-title" class="text-lg font-bold text-indigo-600 mb-4">Editar Planta</h3>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="text-xs font-bold text-gray-400 uppercase">Nombre / Identificador</label>
+                                    <input type="text" id="edit-pl-name-val" class="w-full p-3 border rounded-lg mt-1">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="text-xs font-bold text-gray-400 uppercase">Tanque (L)</label>
+                                        <input type="number" id="edit-tanque-val" class="w-full p-3 border rounded-lg mt-1">
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-bold text-gray-400 uppercase">Reserva (L)</label>
+                                        <input type="number" id="edit-reserva-val" class="w-full p-3 border rounded-lg mt-1">
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 pt-2">
+                                    <button onclick="closeEditTanque()" class="flex-1 bg-gray-100 p-3 rounded-lg font-bold">Cancelar</button>
+                                    <button onclick="updatePlantTank()" class="flex-1 bg-indigo-600 text-white p-3 rounded-lg font-bold">Guardar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="pl-list" class="submodule hidden space-y-4">
+                        <div class="bg-white p-4 rounded-xl shadow-sm flex flex-col md:flex-row gap-3">
+                            <div class="flex items-center space-x-2 flex-1">
+                                <span class="text-xs font-bold text-gray-400">Rango:</span>
+                                <input type="date" id="filter-from" class="p-2 border rounded-lg text-sm flex-1">
+                                <input type="date" id="filter-to" class="p-2 border rounded-lg text-sm flex-1">
+                            </div>
+                            <button onclick="renderPlantsList()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg font-bold text-sm">Filtrar</button>
+                        </div>
+                        <div class="table-container">
+                            <table class="w-full bg-white rounded-xl shadow-sm text-sm">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="p-4 text-left">Planta</th>
+                                        <th class="p-4 text-left">Gasoil Surtido (L)</th>
+                                        <th class="p-4 text-left">Horas Totales</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pl-table-body" class="divide-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="pl-add" class="submodule hidden space-y-4 max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold">Añadir Planta</h3>
+                        <input type="text" id="pl-name-new" placeholder="Identificador de la planta" class="w-full p-3 border rounded-lg">
+                        <button onclick="createNewPlant()" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-bold">Crear</button>
+                    </div>
+
+                    <div id="pl-reg" class="submodule hidden space-y-4 max-w-lg mx-auto bg-white p-6 rounded-xl shadow-lg">
+                        <h3 class="text-lg font-bold">Registro de Consumo</h3>
+                        
+                        <!-- Campo de fecha (solo visible para admin) -->
+                        <div id="pl-reg-date-container" class="hidden">
+                            <label class="text-xs font-bold text-gray-400 uppercase ml-1">Fecha del Registro</label>
+                            <input type="date" id="pl-reg-date" class="w-full p-3 border rounded-lg bg-indigo-50 border-indigo-200 mt-1">
+                        </div>
+
+                        <select id="pl-select-reg" class="w-full p-3 border rounded-lg bg-gray-50"></select>
+                        <input type="number" id="pl-gas" placeholder="Gasoil Surtido (L)" class="w-full p-3 border rounded-lg">
+                        <input type="number" id="pl-hrs" placeholder="Horas de Operación" class="w-full p-3 border rounded-lg">
+                        <button onclick="savePlantLog()" class="w-full bg-indigo-600 text-white p-3 rounded-lg font-bold">Guardar Lectura</button>
+                    </div>
+
+                    <div id="pl-hist" class="submodule hidden space-y-4">
+                        <div class="relative w-full max-w-md">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                            </span>
+                            <input type="text" id="pl-hist-search" oninput="renderPlantsHistoryTable()" placeholder="Buscar en historial..." class="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none transition-all shadow-sm">
+                        </div>
+                        <div class="table-container">
+                            <table class="w-full bg-white rounded-xl shadow-sm text-xs">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="p-3 text-left">Fecha</th>
+                                        <th class="p-3 text-left">Planta</th>
+                                        <th class="p-3 text-left">Lts</th>
+                                        <th class="p-3 text-left">Hrs</th>
+                                        <th class="p-3 text-center">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pl-hist-body" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- USUARIOS -->
+                <section id="mod-usuarios" class="hidden space-y-6 fade-in">
+                    <div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-lg space-y-4 border border-green-50">
+                        <h3 class="text-lg font-bold border-b pb-2 text-green-700 uppercase tracking-tighter">Nuevo Acceso</h3>
+                        <div class="grid grid-cols-1 gap-4">
+                            <input type="text" id="user-fullname" placeholder="Nombre Completo" class="p-3 border rounded-lg">
+                            <div class="grid grid-cols-2 gap-4">
+                                <input type="text" id="user-name" placeholder="Usuario" class="p-3 border rounded-lg">
+                                <input type="password" id="user-pass" placeholder="Password" class="p-3 border rounded-lg">
+                            </div>
+                            <select id="user-level" class="p-3 border rounded-lg bg-gray-50">
+                                <option value="OBSERVADOR">OBSERVADOR</option>
+                                <option value="MONITOREO">MONITOREO</option>
+                                <option value="ADMINISTRADOR">ADMINISTRADOR</option>
+                            </select>
+                            <button onclick="createUser()" class="bg-green-600 text-white p-3 rounded-lg font-bold">Crear Cuenta</button>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="p-4">User</th>
+                                    <th class="p-4">Nivel</th>
+                                    <th class="p-4"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
         </main>
     </div>
 
-    <!-- Modales de Edición -->
-    <div id="modal-edit-song" class="fixed inset-0 modal-overlay z-[200] flex items-center justify-center p-4 hidden">
-        <div class="glass-panel p-6 w-full max-w-md">
-            <h3 class="text-xl font-bold silver-text mb-6 uppercase tracking-wider">Editar Canción</h3>
-            <input type="hidden" id="edit-song-original-id">
-            <div class="space-y-4">
-                <div>
-                    <label class="text-[10px] text-gray-500 block mb-1">TÍTULO</label>
-                    <input type="text" id="edit-song-title" class="w-full">
-                </div>
-                <div>
-                    <label class="text-[10px] text-gray-500 block mb-1">AUTOR</label>
-                    <input type="text" id="edit-song-author" class="w-full">
-                </div>
-                <div>
-                    <label class="text-[10px] text-gray-500 block mb-1">CANTANTE</label>
-                    <select id="edit-song-singer" class="w-full">
-                        <option value="Alejandro">Alejandro</option>
-                        <option value="Alejandra">Alejandra</option>
-                        <option value="Diana">Diana</option>
-                        <option value="Mery">Mery</option>
-                        <option value="Marianny">Marianny</option>
-                        <option value="Nelly">Nelly</option>
-                        <option value="Nicole">Nicole</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-[10px] text-gray-500 block mb-1">TONALIDAD</label>
-                    <select id="edit-song-key" class="w-full edit-key-select"></select>
-                </div>
-                <div>
-                    <label class="text-[10px] text-gray-500 block mb-1">SUBIR PARTITURA / LETRA (Imagen)</label>
-                    <input type="file" id="edit-song-image-input" accept="image/*" class="w-full text-xs">
-                </div>
-                <div class="flex gap-3 pt-4">
-                    <button onclick="closeEditModal()" class="flex-1 p-3 text-xs text-gray-400 hover:text-white border border-white/10 rounded-lg">CANCELAR</button>
-                    <button id="btn-save-song-edit" onclick="processSongUpdate()" class="flex-1 btn-silver p-3 rounded-lg text-xs">GUARDAR CAMBIOS</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Visor de Imagen -->
-    <div id="song-image-viewer" class="fixed inset-0 modal-overlay z-[300] flex flex-col items-center justify-center hidden">
-        <button onclick="closeSongImage()" class="close-viewer-btn absolute top-6 right-6 text-white text-3xl z-[310]"><i class="fas fa-times"></i></button>
-        <div id="song-image-container"></div>
-        <p id="song-image-title" class="mt-4 text-xl font-bold silver-text pb-4"></p>
-    </div>
-
-    <!-- Modal Editar Actividad -->
-    <div id="modal-edit-activity" class="fixed inset-0 modal-overlay z-[200] flex items-center justify-center p-4 hidden">
-        <div class="glass-panel p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <h3 class="text-xl font-bold silver-text mb-6 uppercase tracking-wider border-b border-white/10 pb-2">Editar Actividad</h3>
-            <input type="hidden" id="edit-activity-id">
-            <div class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-xs text-gray-500 block mb-1">FECHA</label>
-                        <input type="date" id="edit-activity-date" class="w-full">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-500 block mb-1">NOMBRE</label>
-                        <input type="text" id="edit-activity-name" class="w-full">
-                    </div>
-                </div>
-
-                <div class="p-4 bg-white/5 rounded-lg border border-white/10">
-                    <h4 class="text-sm font-bold mb-3"><i class="fas fa-music mr-2"></i>REPERTORIO</h4>
-                    <div id="edit-repertorio-inputs" class="space-y-2 mb-3"></div>
-                    <button onclick="addRepertorioRow('edit-repertorio-inputs')" class="text-xs text-silver-text hover:underline">+ Agregar otra canción</button>
-                </div>
-
-                <div class="p-4 bg-white/5 rounded-lg border border-white/10">
-                    <h4 class="text-sm font-bold mb-3"><i class="fas fa-users mr-2"></i>EQUIPO</h4>
-                    <div id="edit-equipo-inputs" class="space-y-2 mb-3"></div>
-                    <button onclick="addEquipoRow('edit-equipo-inputs')" class="text-xs text-silver-text hover:underline">+ Agregar integrante</button>
-                </div>
-
-                <div class="p-4 bg-white/5 rounded-lg border border-white/10">
-                    <h4 class="text-sm font-bold mb-3"><i class="fas fa-sticky-note mr-2"></i>NOTAS</h4>
-                    <textarea id="edit-activity-notes" rows="3" class="w-full resize-none text-sm"></textarea>
-                </div>
-
-                <div class="flex gap-4 pt-4">
-                    <button onclick="closeEditActivityModal()" class="flex-1 p-3 text-sm text-gray-400 hover:text-white border border-white/10 rounded-lg">CANCELAR</button>
-                    <button onclick="processActivityUpdate()" class="flex-1 btn-silver p-3 rounded-lg text-sm">GUARDAR CAMBIOS</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Firebase SDK Logic -->
+    <!-- Firebase -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, onSnapshot, addDoc, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBkN6mE0YqWeAToslbgOAta80gjYi_C4Xk",
@@ -665,688 +457,392 @@ const firebaseConfig = {
   projectId: "gerencia-de-energia",
   storageBucket: "gerencia-de-energia.firebasestorage.app",
   messagingSenderId: "347966041919",
-  appId: "1:347966041919:web:71c81a1b60013478712d8a",
-  measurementId: "G-9X5RMXJB0T"
+  appId: "1:347966041919:web:40cfe12b6dbba953712d8a",
+  measurementId: "G-YMWMWKQYDL"
 };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ministerio-ruach-app';
+        const appId = window.__app_id || 'gerencia-v1';
 
-        // Global State
-        window.currentUser = null;
-        window.allUsers = [];
-        window.activities = [];
-        window.galleryPhotos = [];
-        window.financeIncomes = [];
-        window.financePurchases = [];
-        window.currentDate = new Date();
-        const TONALIDADES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B", "Cm", "C#m", "Dm", "D#m", "Em", "Fm", "F#m", "Gm", "G#m", "Am", "A#m", "Bm"];
+        let currentUser = null; 
+        let localUsers = []; 
+        let authenticatedUser = null; 
+        let currentEditPlantId = null;
+        let cachedInventory = [];
+        let cachedPlantas = [];
+        let cachedHistory = []; 
+        let cachedPlantLogs = [];
+        
+        const getPublicPath = (col) => collection(db, 'artifacts', appId, 'public', 'data', col);
+        const getUsersPath = () => collection(db, 'artifacts', appId, 'public', 'data', 'app_users');
 
-        const initKeySelects = () => {
-            const selects = document.querySelectorAll('.edit-key-select');
-            selects.forEach(s => {
-                s.innerHTML = '<option value="">Sin tono</option>' + TONALIDADES.map(t => `<option value="${t}">${t}</option>`).join('');
+        const refreshIcons = () => { if (typeof lucide !== 'undefined') lucide.createIcons(); };
+
+        window.navigate = (modId) => {
+            ['inventario', 'plantas', 'usuarios'].forEach(s => {
+                const el = document.getElementById(`mod-${s}`);
+                if (el) el.classList.add('hidden');
             });
-        };
-
-        window.handleLogin = async () => {
-            const user = document.getElementById('login-user').value;
-            const pass = document.getElementById('login-pass').value;
-            if (user === 'Admin' && pass === 'admin123') {
-                proceedLogin({ name: 'Admin Ruach', role: 'LIDER', uid: 'admin-root' });
-            } 
-            else if (user === 'ruach' && pass === 'ruach123') {
-                proceedLogin({ name: 'Observador Ruach', role: 'OBSERVADOR', uid: 'observer-user' });
+            document.getElementById(`mod-${modId}`).classList.remove('hidden');
+            document.getElementById('module-title').innerText = modId;
+            if (window.innerWidth < 768) {
+                const sb = document.getElementById('sidebar');
+                if(sb.classList.contains('mobile-open')) toggleSidebar();
             }
-            else {
-                const found = window.allUsers.find(u => u.name.toLowerCase().replace(/\s/g, '') === user.toLowerCase());
-                if(found && pass === 'ruach123') {
-                    proceedLogin({ ...found, uid: found.id });
-                } else {
-                    document.getElementById('login-error').classList.remove('hidden');
-                }
-            }
-        };
-
-        const proceedLogin = (userData) => {
-            window.currentUser = userData;
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('app-container').classList.remove('hidden-section');
-            document.getElementById('user-display-name').innerText = `Sesión: ${userData.name} (${userData.role})`;
-            setupPermissions();
-            renderAll();
-            initFinanceListeners();
-        };
-
-        window.handleLogout = () => location.reload();
-
-        const setupPermissions = () => {
-            const isLider = window.currentUser?.role === 'LIDER';
-            document.getElementById('menu-ingreso').classList.toggle('hidden', !isLider);
-            document.getElementById('menu-usuario').classList.toggle('hidden', !isLider);
-            document.querySelectorAll('.actions-column').forEach(el => el.classList.toggle('hidden', !isLider));
-            document.querySelectorAll('.admin-only').forEach(el => el.classList.toggle('hidden', !isLider));
-        };
-
-        const fileToBase64 = (file) => {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = (error) => reject(error);
-            });
-        };
-
-        // --- USERS ---
-        window.saveUser = async () => {
-            if (!auth.currentUser || window.currentUser?.role !== 'LIDER') return;
-            const name = document.getElementById('user-full-name').value;
-            const birth = document.getElementById('user-birth').value;
-            const job = document.getElementById('user-job').value;
-            const role = document.getElementById('user-role').value;
-            const fileInput = document.getElementById('user-photo-file');
-            if(!name || !birth) return;
-            const btn = document.getElementById('btn-save-user');
-            btn.disabled = true;
-            btn.innerText = "PROCESANDO...";
-            let photoBase64 = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100';
-            try {
-                if (fileInput.files && fileInput.files[0]) photoBase64 = await fileToBase64(fileInput.files[0]);
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'users'), {
-                    name, birth, job, role, photo: photoBase64, createdAt: new Date().toISOString()
-                });
-                document.getElementById('user-full-name').value = '';
-                document.getElementById('user-birth').value = '';
-                document.getElementById('user-job').value = '';
-                fileInput.value = '';
-            } catch (e) { console.error(e); } finally {
-                btn.disabled = false;
-                btn.innerText = "CREAR USUARIO";
-            }
-        };
-
-        window.deleteUser = async (id) => {
-            if (!auth.currentUser || window.currentUser?.role !== 'LIDER') return;
-            if(confirm("¿Eliminar este usuario?")) {
-                try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'users', id)); } catch (e) { console.error(e); }
-            }
-        };
-
-        // --- GALERIA ---
-        window.uploadToGallery = async () => {
-            const fileInput = document.getElementById('gallery-upload-input');
-            if (!fileInput.files || !fileInput.files[0]) return;
-            try {
-                const base64 = await fileToBase64(fileInput.files[0]);
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'gallery'), {
-                    image: base64, uploadedBy: window.currentUser?.name || 'Anónimo', date: new Date().toISOString()
-                });
-                fileInput.value = '';
-            } catch (e) { console.error(e); }
-        };
-
-        window.deleteFromGallery = async (id) => {
-            if (window.currentUser?.role !== 'LIDER') return;
-            if(confirm("¿Deseas eliminar esta foto de la galería?")) {
-                try { await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'gallery', id)); } catch (e) { console.error(e); }
-            }
-        };
-
-        // --- FINANZAS ---
-        const initFinanceListeners = () => {
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'finance_incomes'), snap => {
-                window.financeIncomes = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                renderFinanceIncomes();
-                updateFinanceSummary();
-                renderMonthlyIncomeSummary();
-            });
-
-            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'finance_purchases'), snap => {
-                window.financePurchases = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                renderFinancePurchases();
-                updateFinanceSummary();
-                renderMonthlyIncomeSummary();
-            });
-        };
-
-        window.switchFinanceTab = (tab) => {
-            document.querySelectorAll('.finance-sub-section').forEach(s => s.classList.add('hidden'));
-            document.getElementById(`finance-tab-${tab}`).classList.remove('hidden');
-            document.querySelectorAll('[id^="btn-tab-"]').forEach(b => b.classList.remove('bg-white/10'));
-            document.getElementById(`btn-tab-${tab}`).classList.add('bg-white/10');
-        };
-
-        window.addNewFinanceMember = async () => {
-            const name = prompt("Nombre completo del miembro:");
-            if(!name) return;
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'finance_incomes'), {
-                name: name.toUpperCase(),
-                months: Array(12).fill(0)
-            });
-        };
-
-        window.updateIncomeValue = async (docId, monthIdx, value) => {
-            if(window.currentUser?.role !== 'LIDER') return;
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'finance_incomes', docId);
-            const row = window.financeIncomes.find(i => i.id === docId);
-            const newMonths = [...row.months];
-            newMonths[monthIdx] = parseFloat(value) || 0;
-            await updateDoc(docRef, { months: newMonths });
-        };
-
-        window.deleteFinanceRow = async (docId) => {
-            if(confirm("¿Eliminar este registro de aportes?")) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finance_incomes', docId));
-            }
-        };
-
-        window.saveNewPurchase = async () => {
-            const date = document.getElementById('purchase-date').value;
-            const resp = document.getElementById('purchase-resp').value;
-            const desc = document.getElementById('purchase-desc').value;
-            const cost = parseFloat(document.getElementById('purchase-cost').value);
-            if(!date || isNaN(cost)) return;
-
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'finance_purchases'), {
-                date, resp, desc, cost
-            });
-
-            document.getElementById('purchase-resp').value = '';
-            document.getElementById('purchase-desc').value = '';
-            document.getElementById('purchase-cost').value = '';
-        };
-
-        window.deletePurchase = async (docId) => {
-            if(confirm("¿Eliminar este registro de gasto?")) {
-                await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'finance_purchases', docId));
-            }
-        };
-
-        const renderFinanceIncomes = () => {
-            const isLider = window.currentUser?.role === 'LIDER';
-            const body = document.getElementById('finance-income-body');
-            body.innerHTML = window.financeIncomes.map(row => `
-                <tr class="hover:bg-white/5 transition-colors">
-                    <td class="p-3 sticky-col font-bold text-[10px] uppercase">${row.name}</td>
-                    ${row.months.map((val, idx) => `
-                        <td class="p-2">
-                            <input type="number" step="0.01" value="${val}" 
-                                onchange="updateIncomeValue('${row.id}', ${idx}, this.value)"
-                                ${!isLider ? 'disabled' : ''}>
-                        </td>
-                    `).join('')}
-                    <td class="p-3 admin-only ${isLider ? '' : 'hidden'} text-center">
-                        <button onclick="deleteFinanceRow('${row.id}')" class="text-red-900 hover:text-red-500"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
-        };
-
-        const renderFinancePurchases = () => {
-            const isLider = window.currentUser?.role === 'LIDER';
-            const body = document.getElementById('finance-purchases-list');
-            body.innerHTML = window.financePurchases.sort((a,b) => new Date(b.date) - new Date(a.date)).map(p => `
-                <tr>
-                    <td class="p-2 text-gray-500 font-mono">${p.date}</td>
-                    <td class="p-2 font-bold">${p.resp}</td>
-                    <td class="p-2 text-gray-400 italic">${p.desc}</td>
-                    <td class="p-2 text-right font-bold text-red-400">$${p.cost.toFixed(2)}</td>
-                    <td class="p-2 admin-only ${isLider ? '' : 'hidden'} text-center">
-                        <button onclick="deletePurchase('${p.id}')" class="text-red-900 hover:text-red-500"><i class="fas fa-times"></i></button>
-                    </td>
-                </tr>
-            `).join('');
-        };
-
-        const renderMonthlyIncomeSummary = () => {
-            const container = document.getElementById('finance-monthly-totals-list');
-            if (!container) return;
-            const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-            const monthlyTotals = Array(12).fill(0);
-            window.financeIncomes.forEach(row => {
-                if (row.months && Array.isArray(row.months)) {
-                    row.months.forEach((val, idx) => {
-                        monthlyTotals[idx] += parseFloat(val) || 0;
-                    });
-                }
-            });
-            container.innerHTML = monthlyTotals.map((tot, idx) => `
-                <div class="bg-white/5 p-2 rounded border border-white/5 flex flex-col justify-center">
-                    <span class="text-gray-400 uppercase font-semibold text-[9px]">${monthNames[idx]}</span>
-                    <span class="font-bold text-green-400 text-xs mt-0.5">$${tot.toFixed(2)}</span>
-                </div>
-            `).join('');
-        };
-
-        const updateFinanceSummary = () => {
-            const totalIn = window.financeIncomes.reduce((acc, row) => acc + row.months.reduce((a, b) => a + b, 0), 0);
-            const totalOut = window.financePurchases.reduce((acc, p) => acc + p.cost, 0);
-            const balance = totalIn - totalOut;
-
-            document.getElementById('summary-total-in').innerText = `$${totalIn.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-            document.getElementById('summary-total-out').innerText = `$${totalOut.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-            document.getElementById('summary-balance').innerText = `$${balance.toLocaleString('en-US', {minimumFractionDigits: 2})}`;
-        };
-
-        // --- PLANIFICACION ---
-        window.saveActivity = async () => {
-            if (!auth.currentUser || window.currentUser?.role !== 'LIDER') return;
-            const date = document.getElementById('form-date').value;
-            const activity = document.getElementById('form-activity').value;
-            const notes = document.getElementById('form-notes').value.trim();
-            if(!date || !activity) return;
-
-            const canciones = Array.from(document.querySelectorAll('#repertorio-inputs > div')).map(row => {
-                const inputs = row.querySelectorAll('input, select');
-                return inputs[0].value ? { 
-                    titulo: inputs[0].value.trim(), autor: inputs[1].value.trim(), cantante: inputs[2].value, tonalidad: inputs[3].value
-                } : null;
-            }).filter(i => i);
-
-            const equipo = Array.from(document.querySelectorAll('#equipo-inputs > div')).map(row => {
-                const inputs = row.querySelectorAll('input, select');
-                return inputs[0].value ? { nombre: inputs[0].value, rol: inputs[1].value } : null;
-            }).filter(i => i);
-
-            try {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'activities'), {
-                    date, activity, canciones, equipo, notes, createdAt: new Date().toISOString()
-                });
-                document.getElementById('form-date').value = '';
-                document.getElementById('form-activity').value = '';
-                document.getElementById('form-notes').value = '';
-                document.getElementById('repertorio-inputs').innerHTML = '';
-                document.getElementById('equipo-inputs').innerHTML = '';
-                window.addRepertorioRow('repertorio-inputs');
-                window.addEquipoRow('equipo-inputs');
-                window.showSection('planificacion');
-            } catch (e) { console.error(e); }
-        };
-
-        window.deleteActivity = async (id, date) => {
-            if (!auth.currentUser || window.currentUser?.role !== 'LIDER') return;
-            if(confirm("¿Eliminar esta planificación?")) {
-                try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activities', id));
-                    showDayDetails(date);
-                } catch (e) { console.error(e); }
-            }
-        };
-
-        window.openEditSong = (encodedData) => {
-            const song = JSON.parse(decodeURIComponent(encodedData));
-            document.getElementById('edit-song-original-id').value = encodedData;
-            document.getElementById('edit-song-title').value = song.titulo;
-            document.getElementById('edit-song-author').value = song.autor || '';
-            document.getElementById('edit-song-singer').value = song.cantante;
-            document.getElementById('edit-song-key').value = song.tonalidad || '';
-            document.getElementById('edit-song-image-input').value = '';
-            document.getElementById('modal-edit-song').classList.remove('hidden');
-        };
-
-        window.closeEditModal = () => document.getElementById('modal-edit-song').classList.add('hidden');
-
-        window.processSongUpdate = async () => {
-            if (!auth.currentUser || window.currentUser?.role !== 'LIDER') return;
-            const original = JSON.parse(decodeURIComponent(document.getElementById('edit-song-original-id').value));
-            const imgInput = document.getElementById('edit-song-image-input');
-            const btn = document.getElementById('btn-save-song-edit');
-            btn.disabled = true;
-            btn.innerText = "ACTUALIZANDO...";
-            let newImageData = original.image || null;
-            if(imgInput.files && imgInput.files[0]) newImageData = await fileToBase64(imgInput.files[0]);
-            const updated = {
-                titulo: document.getElementById('edit-song-title').value.trim(),
-                autor: document.getElementById('edit-song-author').value.trim(),
-                cantante: document.getElementById('edit-song-singer').value,
-                tonalidad: document.getElementById('edit-song-key').value,
-                image: newImageData
-            };
-            for(const act of window.activities) {
-                if(act.canciones) {
-                    let changed = false;
-                    const newSongs = act.canciones.map(s => {
-                        if(s.titulo.toLowerCase() === original.titulo.toLowerCase() && s.cantante === original.cantante) {
-                            changed = true; return { ...s, ...updated };
-                        }
-                        return s;
-                    });
-                    if(changed) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activities', act.id), { canciones: newSongs });
-                }
-            }
-            btn.disabled = false; btn.innerText = "GUARDAR CAMBIOS"; closeEditModal();
-        };
-
-        window.openSongImage = (encodedData) => {
-            const song = JSON.parse(decodeURIComponent(encodedData));
-            if(!song.image) return;
-            const viewer = document.getElementById('song-image-viewer');
-            const container = document.getElementById('song-image-container');
-            const title = document.getElementById('song-image-title');
-            container.innerHTML = `<img src="${song.image}" alt="${song.titulo}">`;
-            title.innerText = `${song.titulo} - ${song.cantante}`;
-            viewer.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        };
-
-        window.closeSongImage = () => {
-            document.getElementById('song-image-viewer').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        };
-
-        window.openEditActivity = (id) => {
-            const act = window.activities.find(a => a.id === id);
-            if (!act) return;
-            document.getElementById('edit-activity-id').value = act.id;
-            document.getElementById('edit-activity-date').value = act.date;
-            document.getElementById('edit-activity-name').value = act.activity;
-            document.getElementById('edit-activity-notes').value = act.notes || '';
-            const repContainer = document.getElementById('edit-repertorio-inputs');
-            repContainer.innerHTML = '';
-            if (act.canciones && act.canciones.length) act.canciones.forEach(c => addRepertorioRow('edit-repertorio-inputs', c));
-            else addRepertorioRow('edit-repertorio-inputs');
-            const eqContainer = document.getElementById('edit-equipo-inputs');
-            eqContainer.innerHTML = '';
-            if (act.equipo && act.equipo.length) act.equipo.forEach(e => addEquipoRow('edit-equipo-inputs', e));
-            else addEquipoRow('edit-equipo-inputs');
-            document.getElementById('modal-edit-activity').classList.remove('hidden');
-        };
-
-        window.closeEditActivityModal = () => document.getElementById('modal-edit-activity').classList.add('hidden');
-
-        window.processActivityUpdate = async () => {
-            const id = document.getElementById('edit-activity-id').value;
-            const date = document.getElementById('edit-activity-date').value;
-            const activity = document.getElementById('edit-activity-name').value;
-            const notes = document.getElementById('edit-activity-notes').value.trim();
-            const canciones = Array.from(document.querySelectorAll('#edit-repertorio-inputs > div')).map(row => {
-                const inputs = row.querySelectorAll('input, select');
-                return inputs[0].value ? { 
-                    titulo: inputs[0].value.trim(), autor: inputs[1].value.trim(), cantante: inputs[2].value, tonalidad: inputs[3].value
-                } : null;
-            }).filter(i => i);
-            const equipo = Array.from(document.querySelectorAll('#edit-equipo-inputs > div')).map(row => {
-                const inputs = row.querySelectorAll('input, select');
-                return inputs[0].value ? { nombre: inputs[0].value, rol: inputs[1].value } : null;
-            }).filter(i => i);
-            try {
-                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'activities', id), {
-                    date, activity, canciones, equipo, notes
-                });
-                closeEditActivityModal();
-                showDayDetails(date);
-            } catch (e) { console.error(e); }
-        };
-
-        // --- RENDERS ---
-        window.renderMembers = () => {
-            const container = document.getElementById('members-list');
-            if (!container) return;
-            container.innerHTML = window.allUsers.map(user => `
-                <div class="glass-panel p-4 flex items-center gap-4">
-                    <img src="${user.photo}" class="w-16 h-16 rounded-full object-cover border-2 border-silver">
-                    <div>
-                        <h4 class="font-bold text-white">${user.name}</h4>
-                        <p class="text-xs text-gray-400">Nac: ${user.birth}</p>
-                        <p class="text-[10px] text-silver-text uppercase font-bold mt-1 bg-white/5 px-2 py-0.5 rounded border border-white/10 inline-block">${user.job || 'Miembro'}</p>
-                    </div>
-                </div>
-            `).join('');
-        };
-
-        window.renderAdminUsers = () => {
-            const container = document.getElementById('admin-user-list');
-            if (!container) return;
-            container.innerHTML = window.allUsers.map(user => `
-                <div class="flex justify-between items-center p-3 bg-white/5 rounded-lg border border-white/5">
-                    <div class="flex items-center gap-3">
-                        <img src="${user.photo}" class="w-8 h-8 rounded-full border border-white/20">
-                        <span class="text-sm">${user.name} <span class="text-[10px] text-gray-500 italic">(${user.role})</span></span>
-                    </div>
-                    <button onclick="deleteUser('${user.id}')" class="text-red-500 hover:text-red-400 p-2"><i class="fas fa-trash"></i></button>
-                </div>
-            `).join('');
-        };
-
-        window.renderSongbook = () => {
-            const singerFilter = document.getElementById('filter-singer').value;
-            const searchQuery = document.getElementById('search-song').value.toLowerCase().trim();
-            const container = document.getElementById('song-list');
-            if (!container) return;
-            let todasMap = new Map();
-            window.activities.forEach(act => { 
-                if(act.canciones) {
-                    act.canciones.forEach(s => {
-                        const key = `${s.titulo.toLowerCase().trim()}-${s.cantante}`;
-                        if(!todasMap.has(key) || (!todasMap.get(key).image && s.image)) todasMap.set(key, s);
-                    });
-                }
-            });
-            let finalArr = Array.from(todasMap.values());
-            if(singerFilter !== 'all') finalArr = finalArr.filter(s => s.cantante === singerFilter);
-            if(searchQuery !== '') finalArr = finalArr.filter(s => s.titulo.toLowerCase().includes(searchQuery) || (s.autor && s.autor.toLowerCase().includes(searchQuery)));
-            document.getElementById('song-stats').innerText = `${finalArr.length} canciones encontradas`;
-            const isLider = window.currentUser?.role === 'LIDER';
-            container.innerHTML = finalArr.length ? finalArr.map(song => {
-                const encoded = encodeURIComponent(JSON.stringify(song));
-                return `
-                <tr class="hover:bg-white/5 transition-colors text-sm">
-                    <td class="p-4 font-bold text-white uppercase">${song.titulo}</td>
-                    <td class="p-4 text-gray-400">${song.autor || '-'}</td>
-                    <td class="p-4"><span class="px-2 py-0.5 bg-silver/10 border border-silver/20 rounded-full text-[10px] text-silver-text uppercase">${song.cantante}</span></td>
-                    <td class="p-4 font-bold text-silver-text">${song.tonalidad || '-'}</td>
-                    <td class="p-4 text-center">
-                        ${song.image ? `<button onclick="openSongImage('${encoded}')" class="text-silver-text hover:text-white transition-colors"><i class="fas fa-eye text-lg"></i></button>` : '<span class="text-gray-700">-</span>'}
-                    </td>
-                    <td class="p-4 ${isLider ? '' : 'hidden'} actions-column">
-                        <div class="flex gap-2">
-                            <button onclick="openEditSong('${encoded}')" class="text-blue-400 hover:text-blue-300 p-1"><i class="fas fa-edit"></i></button>
-                        </div>
-                    </td>
-                </tr>`}).join('') : '<tr><td colspan="6" class="p-8 text-center text-gray-500 italic">No se encontraron canciones</td></tr>';
-        };
-
-        window.renderCalendar = () => {
-            const monthNames = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
-            const month = window.currentDate.getMonth(), year = window.currentDate.getFullYear();
-            const titleEl = document.getElementById('calendar-month-year');
-            if (titleEl) titleEl.innerText = `${monthNames[month]} ${year}`;
-            const firstDay = new Date(year, month, 1).getDay(), daysInMonth = new Date(year, month + 1, 0).getDate();
-            const calendarEl = document.getElementById('calendar-days');
-            if (!calendarEl) return;
-            calendarEl.innerHTML = '';
-            for(let i=0; i<firstDay; i++) calendarEl.innerHTML += '<div></div>';
-            for(let d=1; d<=daysInMonth; d++) {
-                const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                const dayActivities = window.activities.filter(a => a.date === dateStr);
-                const hasEvent = dayActivities.length > 0;
-                calendarEl.innerHTML += `
-                    <div class="calendar-day ${hasEvent ? 'has-event' : ''}" onclick="showDayDetails('${dateStr}')">
-                        <span class="text-sm">${d}</span>
-                        <div class="flex gap-0.5 mt-1">
-                            ${dayActivities.map(() => '<div class="event-indicator"></div>').join('')}
-                        </div>
-                    </div>`;
-            }
-        };
-
-        window.showDayDetails = (dateStr) => {
-            const dayActs = window.activities
-                .filter(a => a.date === dateStr)
-                .sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
-            
-            const detailPanel = document.getElementById('day-details');
-            const container = document.getElementById('activities-container');
-            const dateTitle = document.getElementById('detail-date');
-            
-            dateTitle.innerText = dateStr;
-            detailPanel.classList.remove('hidden');
-            
-            if(dayActs.length > 0) {
-                container.innerHTML = dayActs.map(act => {
-                    const listHtml = act.canciones?.map(c => {
-                        const songWithData = window.activities.flatMap(a => a.canciones || [])
-                            .find(s => s.titulo.toLowerCase() === c.titulo.toLowerCase() && s.cantante === c.cantante && s.image) || c;
-                        const encoded = encodeURIComponent(JSON.stringify(songWithData));
-                        return `
-                        <li class="flex items-center justify-between group py-1">
-                            <span>• <b>${c.titulo}</b> (${c.cantante}) <span class="text-silver-text font-bold ml-1">${c.tonalidad || ''}</span></span>
-                            ${songWithData.image ? `<button onclick="openSongImage('${encoded}')" class="text-silver-text hover:text-white px-2"><i class="fas fa-eye text-xs"></i></button>` : ''}
-                        </li>`;
-                    }).join('') || '<li class="text-gray-500">Sin canciones</li>';
-
-                    return `
-                        <div class="p-4 bg-white/5 border border-white/10 rounded-xl relative group">
-                            <div class="flex justify-between items-start mb-3">
-                                <div>
-                                    <p class="text-[10px] text-silver-text uppercase font-bold tracking-tighter">Actividad</p>
-                                    <h4 class="text-lg font-bold">${act.activity}</h4>
-                                </div>
-                                ${window.currentUser?.role === 'LIDER' ? `
-                                    <div class="flex gap-3">
-                                        <button onclick="openEditActivity('${act.id}')" class="text-blue-400 text-xs hover:underline"><i class="fas fa-edit"></i></button>
-                                        <button onclick="deleteActivity('${act.id}', '${dateStr}')" class="text-red-500 text-xs hover:underline"><i class="fas fa-trash"></i></button>
-                                    </div>
-                                ` : ''}
-                            </div>
-                            ${act.notes ? `
-                                <div class="mb-4 p-2 bg-black/20 rounded border border-white/5">
-                                    <p class="text-[9px] text-gray-500 uppercase mb-1">Notas</p>
-                                    <p class="text-xs text-gray-300 italic">${act.notes}</p>
-                                </div>
-                            ` : ''}
-                            <div class="mb-4">
-                                <p class="text-[10px] text-gray-500 mb-1 uppercase">Repertorio</p>
-                                <ul class="text-xs space-y-0.5">${listHtml}</ul>
-                            </div>
-                            <div>
-                                <p class="text-[10px] text-gray-500 mb-1 uppercase">Equipo</p>
-                                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px]">
-                                    ${act.equipo?.map(e => `
-                                        <div class="flex justify-between border-b border-white/5 pb-0.5">
-                                            <span>${e.nombre}</span>
-                                            <span class="text-silver-text italic text-[9px]">${e.rol}</span>
-                                        </div>
-                                    `).join('') || '<span class="text-gray-600">Sin equipo</span>'}
-                                </div>
-                            </div>
-                        </div>`;
-                }).join('');
-            } else {
-                container.innerHTML = `<p class="text-gray-500 italic text-sm py-10 text-center">Sin actividades registradas para hoy.</p>`;
-            }
-        };
-
-        window.addRepertorioRow = (targetId, data = null) => {
-            const div = document.createElement('div');
-            div.className = "grid grid-cols-4 gap-2";
-            div.innerHTML = `
-                <input type="text" placeholder="Canción" class="text-xs" value="${data ? data.titulo : ''}">
-                <input type="text" placeholder="Autor" class="text-xs" value="${data ? (data.autor || '') : ''}">
-                <select class="text-xs">
-                    <option value="Alejandro" ${data && data.cantante === 'Alejandro' ? 'selected' : ''}>Alejandro</option>
-                    <option value="Alejandra" ${data && data.cantante === 'Alejandra' ? 'selected' : ''}>Alejandra</option>
-                    <option value="Diana" ${data && data.cantante === 'Diana' ? 'selected' : ''}>Diana</option>
-                    <option value="Mery" ${data && data.cantante === 'Mery' ? 'selected' : ''}>Mery</option>
-                    <option value="Marianny" ${data && data.cantante === 'Marianny' ? 'selected' : ''}>Marianny</option>
-                    <option value="Nelly" ${data && data.cantante === 'Nelly' ? 'selected' : ''}>Nelly</option>
-                    <option value="Nicole" ${data && data.cantante === 'Nicole' ? 'selected' : ''}>Nicole</option>
-                </select>
-                <select class="text-xs edit-key-select">
-                    <option value="">Tono</option>
-                    ${TONALIDADES.map(t => `<option value="${t}" ${data && data.tonalidad === t ? 'selected' : ''}>${t}</option>`).join('')}
-                </select>`;
-            document.getElementById(targetId).appendChild(div);
-        };
-
-        window.addEquipoRow = (targetId, data = null) => {
-            const roles = ["baterista", "bajista", "tecladista", "violinista", "guitarrista", "coro", "director", "sonidista"];
-            const div = document.createElement('div');
-            div.className = "grid grid-cols-2 gap-2";
-            div.innerHTML = `
-                <input type="text" placeholder="Nombre" class="text-sm" value="${data ? data.nombre : ''}">
-                <select class="text-sm uppercase">
-                    ${roles.map(r => `<option value="${r}" ${data && data.rol === r ? 'selected' : ''}>${r.charAt(0).toUpperCase() + r.slice(1)}</option>`).join('')}
-                </select>`;
-            document.getElementById(targetId).appendChild(div);
+            refreshIcons();
         };
 
         window.toggleSidebar = () => {
             const sb = document.getElementById('sidebar');
-            const main = document.getElementById('main-content');
-            sb.classList.toggle('closed');
-            if(window.innerWidth > 768) main.style.marginLeft = sb.classList.contains('closed') ? '0' : '256px';
+            const overlay = document.getElementById('sidebar-overlay');
+            const icon = document.getElementById('toggle-icon-desktop');
+            if (window.innerWidth < 768) {
+                sb.classList.toggle('mobile-open');
+                overlay.classList.toggle('active');
+            } else {
+                sb.classList.toggle('sidebar-collapsed');
+                if (icon) icon.style.transform = sb.classList.contains('sidebar-collapsed') ? 'rotate(180deg)' : 'rotate(0deg)';
+            }
         };
 
-        window.showSection = (sectionId) => {
-            if((sectionId === 'ingreso' || sectionId === 'usuarios-admin') && window.currentUser?.role !== 'LIDER') return;
-            document.querySelectorAll('.section-content').forEach(s => s.classList.add('hidden-section'));
-            document.getElementById(`section-${sectionId}`).classList.remove('hidden-section');
-            document.getElementById('current-section-title').innerText = sectionId.replace('-', ' ').toUpperCase();
-            if(window.innerWidth < 1024) {
-                const sb = document.getElementById('sidebar');
-                if(!sb.classList.contains('closed')) window.toggleSidebar();
+        window.handleLogin = () => {
+            const userIn = document.getElementById('login-user').value;
+            const passIn = document.getElementById('login-pass').value;
+            const found = localUsers.find(u => u.username === userIn && u.pass === passIn);
+            if (found) {
+                currentUser = found;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                document.getElementById('user-display').innerText = `${found.fullname} | ${found.level}`;
+                applyPermissions(found.level);
+                renderPlantsTable();
+                renderInventoryTable();
+                renderHistoryTable();
+                renderPlantsHistoryTable();
+            } else {
+                const err = document.getElementById('login-error');
+                err.classList.remove('hidden');
+                setTimeout(() => err.classList.add('hidden'), 3000);
+            }
+        };
+
+        window.handleLogout = () => {
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('logout-screen').classList.remove('hidden');
+            setTimeout(() => location.reload(), 2500);
+        };
+
+        window.showSubmodule = (subId) => {
+            const el = document.getElementById(subId);
+            if (!el) return;
+            const container = el.parentElement;
+            container.querySelectorAll('.submodule').forEach(s => s.classList.add('hidden'));
+            el.classList.remove('hidden');
+            const tabs = container.querySelector('.flex.space-x-2');
+            if (tabs) {
+                tabs.querySelectorAll('button').forEach(b => {
+                    b.classList.remove('text-indigo-600', 'border-b-2', 'border-indigo-600');
+                    b.classList.add('text-gray-400');
+                });
+                event.target.classList.add('text-indigo-600', 'border-b-2', 'border-indigo-600');
+                event.target.classList.remove('text-gray-400');
+            }
+            refreshIcons();
+        };
+
+        // Inventario Actions
+        window.saveItem = async () => {
+            if (!authenticatedUser) return;
+            const btn = event.target;
+            btn.disabled = true;
+            const data = {
+                code: document.getElementById('inv-code').value.trim(),
+                name: document.getElementById('inv-name').value.trim(),
+                brand: document.getElementById('inv-brand').value.trim(),
+                type: document.getElementById('inv-type').value.trim(),
+                qty: parseInt(document.getElementById('inv-qty').value),
+                dept: document.getElementById('inv-dept').value
+            };
+            if (!data.code || isNaN(data.qty)) { btn.disabled = false; return; }
+            try {
+                await setDoc(doc(getPublicPath('inventario'), data.code), data);
+                await addDoc(getPublicPath('inv_history'), { timestamp: Date.now(), action: 'INGRESO', code: data.code, qty: data.qty, extra: `Depto: ${data.dept}` });
+                alert('Guardado exitosamente');
+                document.querySelectorAll('#inv-add input').forEach(i => i.value = '');
+            } catch (e) { console.error(e); }
+            btn.disabled = false;
+        };
+
+        window.withdrawItem = async () => {
+            if (!authenticatedUser) return;
+            const code = document.getElementById('ret-code').value.trim();
+            const qty = parseInt(document.getElementById('ret-qty').value);
+            const dest = document.getElementById('ret-dest').value.trim();
+            const docRef = doc(getPublicPath('inventario'), code);
+            const snap = await getDoc(docRef);
+            if (snap.exists()) {
+                const currentQty = snap.data().qty;
+                if (currentQty >= qty) {
+                    await updateDoc(docRef, { qty: currentQty - qty });
+                    await addDoc(getPublicPath('inv_history'), { timestamp: Date.now(), action: 'RETIRO', code: code, qty: qty, extra: `Destino: ${dest}` });
+                    alert('Retiro exitoso');
+                    document.querySelectorAll('#inv-ret input').forEach(i => i.value = '');
+                } else alert('Error: Stock insuficiente');
+            } else alert('Error: Código no existe');
+        };
+
+        window.openEditInv = (code) => {
+            if (!currentUser || currentUser.level !== 'ADMINISTRADOR') return;
+            const item = cachedInventory.find(i => i.code === code);
+            if (item) {
+                document.getElementById('edit-inv-code').value = item.code;
+                document.getElementById('edit-inv-name').value = item.name || '';
+                document.getElementById('edit-inv-brand').value = item.brand || '';
+                document.getElementById('edit-inv-type').value = item.type || '';
+                document.getElementById('edit-inv-qty').value = item.qty || 0;
+                document.getElementById('edit-inv-dept').value = item.dept || 'Cables';
+                document.getElementById('modal-edit-inv').classList.remove('hidden');
+            }
+        };
+
+        window.closeEditInv = () => document.getElementById('modal-edit-inv').classList.add('hidden');
+
+        window.updateInventoryItem = async () => {
+            if (!currentUser || currentUser.level !== 'ADMINISTRADOR') return;
+            const code = document.getElementById('edit-inv-code').value;
+            const data = {
+                name: document.getElementById('edit-inv-name').value.trim(),
+                brand: document.getElementById('edit-inv-brand').value.trim(),
+                type: document.getElementById('edit-inv-type').value.trim(),
+                qty: parseInt(document.getElementById('edit-inv-qty').value) || 0,
+                dept: document.getElementById('edit-inv-dept').value
+            };
+            try {
+                await updateDoc(doc(getPublicPath('inventario'), code), data);
+                await addDoc(getPublicPath('inv_history'), { timestamp: Date.now(), action: 'EDICIÓN', code: code, qty: data.qty, extra: `Modificado por Admin` });
+                alert('Producto actualizado');
+                closeEditInv();
+            } catch(e) { alert('Error al actualizar inventario.'); }
+        };
+
+        window.deleteInvHistory = async (id) => {
+            if (currentUser?.level === 'ADMINISTRADOR' && confirm('¿Eliminar este registro del historial?')) {
+                await deleteDoc(doc(getPublicPath('inv_history'), id));
+            }
+        };
+
+        // Renders
+        window.renderInventoryTable = () => {
+            const searchVal = document.getElementById('inv-search-input')?.value.toLowerCase() || "";
+            const body = document.getElementById('inv-table-body');
+            if(!body) return;
+            const filteredItems = cachedInventory.filter(item => (item.name || "").toLowerCase().includes(searchVal) || (item.code || "").toLowerCase().includes(searchVal) || (item.brand || "").toLowerCase().includes(searchVal));
+            body.innerHTML = filteredItems.map(i => `<tr class="hover:bg-indigo-50/30 transition">
+                <td class="p-4 font-mono font-bold text-indigo-700">${i.code}</td>
+                <td class="p-4">
+                    <div class="font-bold text-gray-800">${i.name}</div>
+                    <div class="text-[10px] text-gray-400 uppercase">${i.brand} | ${i.type}</div>
+                </td>
+                <td class="p-4"><span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 uppercase">${i.dept || 'N/A'}</span></td>
+                <td class="p-4"><span class="bg-indigo-100 text-indigo-800 px-2 py-1 rounded font-bold">${i.qty}</span></td>
+                <td class="p-4 text-center">
+                     ${currentUser?.level === 'ADMINISTRADOR' ? `<button onclick="openEditInv('${i.code}')" class="bg-blue-600 text-white p-2.5 rounded-lg shadow-md hover:bg-blue-700 transition active:scale-95"><i data-lucide="file-edit" class="w-4 h-4"></i></button>` : '<span class="text-gray-300">—</span>'}
+                </td>
+            </tr>`).join('');
+            if (!filteredItems.length) body.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400 italic">No hay resultados</td></tr>';
+            refreshIcons();
+        };
+
+        window.renderHistoryTable = () => {
+            const searchVal = document.getElementById('hist-search-input')?.value.toLowerCase() || "";
+            const body = document.getElementById('inv-hist-body');
+            if (!body) return;
+            const filteredHistory = cachedHistory.map(h => {
+                const item = cachedInventory.find(inv => inv.code === h.code);
+                return { ...h, itemName: item ? item.name : 'Artículo no identificado' };
+            }).filter(h => (h.code || "").toLowerCase().includes(searchVal) || (h.itemName || "").toLowerCase().includes(searchVal) || (h.extra || "").toLowerCase().includes(searchVal));
+
+            body.innerHTML = filteredHistory.map(h => `<tr class="hover:bg-gray-50 transition">
+                <td class="p-3 text-[10px] text-gray-500">${new Date(h.timestamp).toLocaleDateString()}</td>
+                <td class="p-3"><span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${h.action === 'INGRESO' ? 'bg-green-100 text-green-700' : h.action === 'RETIRO' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${h.action}</span></td>
+                <td class="p-3 font-mono font-bold text-gray-600">${h.code}</td>
+                <td class="p-3 font-medium text-gray-800">${h.itemName}</td>
+                <td class="p-3 font-bold text-gray-900">${h.qty}</td>
+                <td class="p-3 text-gray-500 italic text-[10px]">${h.extra || '—'}</td>
+                <td class="p-3 text-center">
+                    ${currentUser?.level === 'ADMINISTRADOR' ? `<button onclick="deleteInvHistory('${h.id}')" class="text-red-500 hover:bg-red-50 px-2 py-1 rounded-md font-bold text-sm transition">X</button>` : '—'}
+                </td>
+            </tr>`).join('');
+        };
+
+        // Plantas Actions
+        window.createNewPlant = async () => {
+            const name = document.getElementById('pl-name-new').value.trim();
+            if (name) { await setDoc(doc(getPublicPath('plantas'), name), { name, tanque: 0, reserva: 0 }); document.getElementById('pl-name-new').value = ''; alert('Planta registrada'); }
+        };
+
+        window.openEditTanque = (id, currentT, currentR) => {
+            if (!currentUser || (currentUser.level !== 'ADMINISTRADOR' && currentUser.level !== 'MONITOREO')) return;
+            currentEditPlantId = id;
+            document.getElementById('edit-pl-name-val').value = id;
+            document.getElementById('edit-tanque-val').value = currentT || 0;
+            document.getElementById('edit-reserva-val').value = currentR || 0;
+            document.getElementById('modal-edit-tanque').classList.remove('hidden');
+        };
+
+        window.closeEditTanque = () => document.getElementById('modal-edit-tanque').classList.add('hidden');
+
+        window.updatePlantTank = async () => {
+            const newName = document.getElementById('edit-pl-name-val').value.trim();
+            const t = parseFloat(document.getElementById('edit-tanque-val').value) || 0;
+            const r = parseFloat(document.getElementById('edit-reserva-val').value) || 0;
+            if (!newName || !currentEditPlantId) return;
+            try {
+                if (newName !== currentEditPlantId) {
+                    await setDoc(doc(getPublicPath('plantas'), newName), { name: newName, tanque: t, reserva: r });
+                    await deleteDoc(doc(getPublicPath('plantas'), currentEditPlantId));
+                } else await updateDoc(doc(getPublicPath('plantas'), currentEditPlantId), { tanque: t, reserva: r });
+                alert('Planta actualizada');
+                closeEditTanque();
+            } catch(e) { console.error(e); }
+        };
+
+        window.savePlantLog = async () => {
+            const name = document.getElementById('pl-select-reg').value;
+            const gas = parseFloat(document.getElementById('pl-gas').value) || 0;
+            const hrs = parseFloat(document.getElementById('pl-hrs').value) || 0;
+            
+            // Lógica de fecha para Administrador
+            let finalTimestamp = Date.now();
+            let finalDateStr = new Date().toISOString().split('T')[0];
+            
+            if (currentUser?.level === 'ADMINISTRADOR') {
+                const customDate = document.getElementById('pl-reg-date').value;
+                if (customDate) {
+                    finalDateStr = customDate;
+                    // Ajustar timestamp a mediodía de la fecha elegida para evitar desfases de zona horaria
+                    finalTimestamp = new Date(customDate + 'T12:00:00').getTime();
+                }
             }
 
-            if (sectionId === 'finanzas') {
-                const isLider = window.currentUser?.role === 'LIDER';
-                if (isLider) {
-                    window.switchFinanceTab('ingresos');
-                } else {
-                    window.switchFinanceTab('compras');
+            if (name) {
+                await addDoc(getPublicPath('plantas_logs'), { 
+                    plantName: name, 
+                    gas, 
+                    hrs, 
+                    timestamp: finalTimestamp, 
+                    dateStr: finalDateStr 
+                });
+                alert('Lectura guardada');
+                document.getElementById('pl-gas').value = ''; 
+                document.getElementById('pl-hrs').value = '';
+                // Limpiar fecha solo si es admin
+                if (currentUser?.level === 'ADMINISTRADOR') {
+                    document.getElementById('pl-reg-date').value = new Date().toISOString().split('T')[0];
                 }
             }
         };
 
-        window.changeMonth = (delta) => { window.currentDate.setMonth(window.currentDate.getMonth() + delta); window.renderCalendar(); };
-
-        window.renderGallery = () => {
-            const container = document.getElementById('gallery-container');
-            if (!container) return;
-            const isLider = window.currentUser?.role === 'LIDER';
-            container.innerHTML = window.galleryPhotos.length ? window.galleryPhotos.map(photo => `
-                <div class="gallery-item group">
-                    <img src="${photo.image}" loading="lazy">
-                    <div class="gallery-overlay">
-                        <p class="text-[10px] text-white/80 italic">Subida por: ${photo.uploadedBy}</p>
-                        ${isLider ? `<button onclick="deleteFromGallery('${photo.id}')" class="absolute top-2 right-2 bg-red-500/80 text-white p-1.5 rounded-full text-[10px] hover:bg-red-600 transition-colors"><i class="fas fa-trash"></i></button>` : ''}
-                    </div>
-                </div>
-            `).join('') : '<div class="col-span-full py-12 text-center text-gray-500 italic">No hay fotos en la galería todavía.</div>';
+        window.deletePlantLog = async (id) => {
+            if (currentUser?.level === 'ADMINISTRADOR' && confirm('¿Eliminar esta lectura del historial?')) {
+                await deleteDoc(doc(getPublicPath('plantas_logs'), id));
+            }
         };
 
-        const renderAll = () => { 
-            window.renderMembers(); window.renderAdminUsers(); window.renderCalendar(); window.renderSongbook(); window.renderGallery();
+        window.renderPlantsTable = () => {
+            const search = document.getElementById('pl-status-search')?.value.toLowerCase() || "";
+            const body = document.getElementById('pl-status-body');
+            if(!body) return;
+            const filtered = cachedPlantas.filter(p => p.name.toLowerCase().includes(search));
+            body.innerHTML = filtered.map(p => `<tr>
+                <td class="p-4 font-bold text-indigo-900">${p.name}</td>
+                <td class="p-4"><span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg font-mono font-bold border border-blue-100">${p.tanque || 0} L</span></td>
+                <td class="p-4"><span class="bg-orange-50 text-orange-700 px-3 py-1 rounded-lg font-mono font-bold border border-orange-100">${p.reserva || 0} L</span></td>
+                <td class="p-4 text-center">
+                    ${currentUser && (currentUser.level === 'ADMINISTRADOR' || currentUser.level === 'MONITOREO') ? `<button onclick="openEditTanque('${p.name}', ${p.tanque}, ${p.reserva})" class="bg-blue-600 text-white p-2.5 rounded-lg shadow-md hover:bg-blue-700 transition active:scale-95"><i data-lucide="file-edit" class="w-4 h-4"></i></button>` : '—'}
+                </td>
+            </tr>`).join('');
+            refreshIcons();
         };
 
-        const startFirestoreListeners = () => {
-            onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'users')), (s) => {
-                window.allUsers = s.docs.map(d => ({id: d.id, ...d.data()}));
-                window.renderMembers(); window.renderAdminUsers();
+        window.renderPlantsHistoryTable = () => {
+            const search = document.getElementById('pl-hist-search')?.value.toLowerCase() || "";
+            const body = document.getElementById('pl-hist-body');
+            if(!body) return;
+            const filtered = cachedPlantLogs.filter(l => l.plantName.toLowerCase().includes(search));
+            body.innerHTML = filtered.map(l => `<tr>
+                <td class="p-3 text-[10px] text-gray-500">${l.dateStr}</td>
+                <td class="p-3 font-bold text-indigo-800">${l.plantName}</td>
+                <td class="p-3 font-bold text-green-700">${l.gas} L</td>
+                <td class="p-3 font-mono font-bold text-indigo-600">${l.hrs} hrs</td>
+                <td class="p-3 text-center">
+                    ${currentUser?.level === 'ADMINISTRADOR' ? `<button onclick="deletePlantLog('${l.id}')" class="text-red-500 hover:bg-red-50 px-2 py-1 rounded-md font-bold text-sm transition">X</button>` : '—'}
+                </td>
+            </tr>`).join('');
+        };
+
+        window.renderPlantsList = () => {
+            const from = document.getElementById('filter-from').value;
+            const to = document.getElementById('filter-to').value;
+            const body = document.getElementById('pl-table-body');
+            if(!body) return;
+            body.innerHTML = cachedPlantas.map(p => {
+                const logs = cachedPlantLogs.filter(l => l.plantName === p.name && (from ? l.dateStr >= from : true) && (to ? l.dateStr <= to : true));
+                return `<tr class="border-b">
+                    <td class="p-4 font-bold text-gray-700">${p.name}</td>
+                    <td class="p-4 text-green-600 font-bold">${logs.reduce((acc, curr) => acc + curr.gas, 0)}</td>
+                    <td class="p-4 text-indigo-600 font-bold">${logs.reduce((acc, curr) => acc + curr.hrs, 0)}</td>
+                </tr>`;
+            }).join('');
+        };
+
+        // Users Logic
+        window.createUser = async () => {
+            const fn = document.getElementById('user-fullname').value, un = document.getElementById('user-name').value, ps = document.getElementById('user-pass').value, lv = document.getElementById('user-level').value;
+            if (fn && un && ps) { await addDoc(getUsersPath(), { fullname: fn, username: un, pass: ps, level: lv }); alert('Usuario creado'); document.querySelectorAll('#mod-usuarios input').forEach(i => i.value = ''); }
+        };
+
+        window.deleteUser = async (id) => { if (confirm('¿Eliminar usuario?')) await deleteDoc(doc(getUsersPath(), id)); };
+
+        function applyPermissions(level) {
+            if (level === 'ADMINISTRADOR') { 
+                document.getElementById('nav-usuarios')?.classList.remove('hidden'); 
+                document.getElementById('btn-pl-add')?.classList.remove('hidden');
+                // Habilitar selección de fecha en registro
+                document.getElementById('pl-reg-date-container')?.classList.remove('hidden');
+                document.getElementById('pl-reg-date').value = new Date().toISOString().split('T')[0];
+            } else {
+                document.getElementById('pl-reg-date-container')?.classList.add('hidden');
+            }
+            if (level === 'OBSERVADOR') ['btn-inv-add', 'btn-inv-ret', 'btn-pl-reg'].forEach(id => document.getElementById(id)?.classList.add('hidden'));
+        }
+
+        // Listeners
+        function startSync(user) {
+            authenticatedUser = user;
+            document.getElementById('connection-status').classList.replace('bg-connection-fail', 'bg-connection-ok');
+            onSnapshot(getUsersPath(), (snap) => {
+                localUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                if (!localUsers.find(u => u.username === 'Admin')) setDoc(doc(getUsersPath(), 'adm_root'), { fullname: 'Master Root', username: 'Admin', pass: 'admin1', level: 'ADMINISTRADOR' });
+                const body = document.getElementById('users-table-body');
+                if (body) body.innerHTML = localUsers.map(u => `<tr><td class="p-4 text-xs font-bold">${u.username}</td><td class="p-4 text-xs">${u.level}</td><td class="p-4 text-right">${u.username !== 'Admin' ? `<button onclick="deleteUser('${u.id}')" class="text-red-500">Eliminar</button>` : ''}</td></tr>`).join('');
             });
+            onSnapshot(getPublicPath('inventario'), (snap) => { cachedInventory = snap.docs.map(d => d.data()); renderInventoryTable(); renderHistoryTable(); });
+            onSnapshot(getPublicPath('inv_history'), (snap) => { cachedHistory = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp); renderHistoryTable(); });
+            onSnapshot(getPublicPath('plantas'), (snap) => { cachedPlantas = snap.docs.map(d => d.data()); const selReg = document.getElementById('pl-select-reg'); if (selReg) selReg.innerHTML = cachedPlantas.map(p => `<option value="${p.name}">${p.name}</option>`).join(''); renderPlantsTable(); renderPlantsList(); });
+            onSnapshot(getPublicPath('plantas_logs'), (snap) => { cachedPlantLogs = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.timestamp - a.timestamp); renderPlantsHistoryTable(); renderPlantsList(); });
+        }
 
-            onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'activities')), (s) => {
-                window.activities = s.docs.map(d => ({id: d.id, ...d.data()}));
-                window.renderCalendar(); window.renderSongbook();
-                const detailPanel = document.getElementById('day-details');
-                const dateText = document.getElementById('detail-date')?.innerText;
-                if(detailPanel && !detailPanel.classList.contains('hidden') && dateText) showDayDetails(dateText);
-            });
-
-            onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'gallery')), (s) => {
-                window.galleryPhotos = s.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => new Date(b.date) - new Date(a.date));
-                window.renderGallery();
-            });
-        };
-
-        onAuthStateChanged(auth, (user) => { if (user) startFirestoreListeners(); });
-        const initializeAuth = async () => {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
-            else await signInAnonymously(auth);
-        };
-        initializeAuth(); initKeySelects();
-        window.addRepertorioRow('repertorio-inputs'); window.addEquipoRow('equipo-inputs');
+        window.addEventListener('load', async () => {
+            refreshIcons();
+            onAuthStateChanged(auth, (u) => { if (u) startSync(u); });
+            try {
+                if (typeof window.__initial_auth_token !== 'undefined' && window.__initial_auth_token) await signInWithCustomToken(auth, window.__initial_auth_token);
+                else await signInAnonymously(auth);
+            } catch (err) { console.error("Auth fail", err); }
+        });
     </script>
 </body>
 </html>
+
